@@ -1,0 +1,36 @@
+/* Xóa hết code cũ và thay bằng code này */
+
+.heroBannerContainer {
+  width: 100%;
+  height: auto; // Chiều cao tự động theo ảnh
+}
+
+.mySwiper {
+  width: 100%;
+  height: 500px;
+  aspect-ratio: 16 / 9;
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover; // Đảm bảo ảnh luôn vừa vặn
+  }
+}
+
+/* Tùy chỉnh màu sắc cho các nút của Swiper */
+:global(.swiper-button-next),
+:global(.swiper-button-prev) {
+  color: #ffffff !important; // Màu trắng cho mũi tên
+  background-color: rgba(0, 0, 0, 0.3);
+  width: 40px !important;
+  height: 40px !important;
+  border-radius: 50%;
+  &::after {
+    font-size: 1.2rem !important;
+  }
+}
+
+:global(.swiper-pagination-bullet-active) {
+  background-color: #ffffff !important; // Màu trắng cho chấm tròn đang hoạt động
+}

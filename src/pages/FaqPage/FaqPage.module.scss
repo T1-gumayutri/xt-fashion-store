@@ -1,0 +1,44 @@
+.faqContainer {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+}
+
+.faqItem {
+  border-bottom: 1px solid #eee;
+  margin-bottom: 15px;
+}
+
+.question {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 15px 0;
+  cursor: pointer;
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: #333;
+
+  &:hover {
+    color: #c92127;
+  }
+}
+
+.answer {
+  padding: 0 10px 20px 10px;
+  line-height: 1.7;
+  color: #555;
+  // Simple fade-in animation
+  animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

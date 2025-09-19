@@ -1,0 +1,148 @@
+/* ... .header, .topBar ... */
+.header {
+  border-bottom: 1px solid #e0e0e0;
+  position: relative;
+  z-index: 1000;
+}
+
+.topBar {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 15px;
+  background-color: #f5f5f5;
+  padding: 8px 50px;
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.topLink {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  text-decoration: none;
+  color: #333;
+
+  &:hover {
+    color: #007bff;
+  }
+}
+
+
+/* --- CẬP NHẬT Ở ĐÂY --- */
+.mainHeader {
+  display: flex;
+  /* Bỏ justify-content: space-between để có thể căn giữa nav */
+  align-items: center;
+  padding: 15px 50px;
+  background-color: #fff;
+}
+
+.logo img {
+  height: 60px;
+ 
+}
+
+.navigation {
+  /* Cho phép thanh nav chiếm hết không gian trống ở giữa */
+  flex-grow: 1;
+  display: flex;
+  /* Căn giữa danh sách ul bên trong nó */
+  justify-content: center;
+}
+
+.navigation ul {
+  list-style: none;
+  display: flex;
+  gap: 40px; /* Tăng khoảng cách giữa các mục cho đẹp hơn */
+  margin: 0;
+  padding: 0;
+}
+
+.navigation a {
+  text-decoration: none;
+  color: #333;
+  /* IN ĐẬM: Tăng font-weight để chữ đậm và rõ nét hơn */
+  font-weight: 700;
+  font-size: 1rem;
+  text-transform: uppercase;
+  padding: 20px 0;
+  display: block;
+}
+
+/* --- CSS CHO DROPDOWN (Giữ nguyên) --- */
+.navItem {
+  position: relative;
+
+  &:hover .dropdown {
+    display: block;
+  }
+}
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: -15px;
+  background-color: #fff;
+  min-width: 220px;
+  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+  border-top: 2px solid #333;
+  padding: 10px;
+  animation: fadeIn 0.3s ease-in-out;
+}
+
+.dropdownContent {
+  a {
+    font-size: 0.9rem;
+    padding: 10px 15px;
+    text-transform: none;
+    font-weight: 400;
+
+    &:hover {
+      background-color: #f5f5f5;
+    }
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+// Thêm vào cuối file Header.module.scss
+.welcomeMessage {
+  font-weight: 500;
+}
+
+.logoutButton {
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  color: #333;
+  padding: 0;
+
+  &:hover {
+    color: #007bff;
+  }
+}
+.topLink { background: none; border: none; cursor: pointer; font-family: inherit; }
+.topBar {
+  display: flex;
+  justify-content: space-between; // Tách 2 nhóm ra 2 bên
+  align-items: center;
+  // ... các style cũ
+}
+
+.userActions, .customerActions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}

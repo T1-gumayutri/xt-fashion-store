@@ -1,0 +1,68 @@
+.cardLink {
+  text-decoration: none;
+  color: inherit;
+}
+
+.card {
+  /* Căn giữa toàn bộ nội dung bên trong card */
+  text-align: center; 
+  cursor: pointer;
+  transition: box-shadow 0.3s ease, transform 0.3s ease;
+  padding: 10px;
+
+  &:hover {
+    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-5px);
+  }
+}
+
+.image {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  margin-bottom: 12px;
+  border-radius: 4px;
+}
+
+.name {
+  font-size: 15px;
+  /* Chữ thường, không in đậm */
+  font-weight: 400; 
+  /* Màu đen */
+  color: #222; 
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+  
+  /* Đảm bảo tên sản phẩm dài không phá vỡ layout */
+  height: 63px; // Tăng chiều cao để chứa được tên và ID (khoảng 3 dòng)
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 3; // Giới hạn 3 dòng
+  -webkit-box-orient: vertical;
+}
+
+.price {
+  font-size: 17px;
+  /* Chữ đen, in đậm */
+  font-weight: 700; 
+  color: #000;
+  margin: 0 0 8px 0;
+}
+
+.colors {
+  /* Căn giữa các chấm màu */
+  justify-content: center; 
+  display: flex;
+  gap: 6px;
+  margin-top: 10px;
+  height: 15px;
+}
+
+.color {
+  width: 15px;
+  height: 15px;
+  border-radius: 50%;
+  border: 1px solid #ccc;
+}

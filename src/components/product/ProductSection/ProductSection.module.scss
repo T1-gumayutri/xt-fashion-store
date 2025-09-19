@@ -1,0 +1,156 @@
+.section {
+  /* Aligns the whole section to the left */
+  margin: 3rem 0; 
+  padding: 0 1rem; /* Provides a small space on the left/right */
+}
+
+.header {
+  display: flex;
+  align-items: baseline; 
+  gap: 40px; 
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #eee;
+}
+
+.titleLink {
+  text-decoration: none; /* Removes the underline */
+  color: inherit; /* Inherits the color from the title */
+}
+
+.title {
+  font-size: 2.2rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  flex-shrink: 0;
+  color: #222;
+}
+
+.subCategoryNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+}
+
+.subCategoryLink {
+  font-size: 1rem;
+  font-weight: 500;
+  color: #555;
+  text-decoration: none;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  position: relative;
+  transition: color 0.3s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #000;
+    transition: width 0.3s ease-out;
+  }
+
+  &:hover {
+    color: #000;
+  }
+  
+  &:hover::after {
+    width: 100%;
+  }
+}
+
+.grid {
+  display: grid;
+  /* Always 4 columns on large screens */
+  grid-template-columns: repeat(4, 1fr); 
+  gap: 1.5rem;
+
+  /* Responsive adjustments for smaller screens */
+  @media (max-width: 1200px) {
+    grid-template-columns: repeat(3, 1fr); // 3 columns on tablets
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr); // 2 columns on mobile
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: repeat(1, 1fr); // 1 column on very small phones
+  }
+}
+
+.viewAllContainer {
+  text-align: center; // Center the link
+  margin-top: 30px; // Add space above the link
+}
+
+.viewAllLink {
+  display: inline-block;
+  padding: 10px 25px;
+  border: 1px solid #333;
+  color: #333;
+  text-decoration: none;
+  font-weight: 500;
+  text-transform: uppercase;
+  transition: all 0.3s ease;
+
+  &:hover {
+    background-color: #333;
+    color: #fff;
+  }
+}
+.subCategoryNav {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 25px;
+  align-items: center; // Căn chỉnh các nút cho thẳng hàng
+}
+
+// Thay đổi từ thẻ <a> sang <button>
+.subCategoryLink {
+  // Reset style của button
+  background: none;
+  border: none;
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+
+  // Style cũ của link
+  font-size: 1rem;
+  font-weight: 500;
+  color: #555;
+  text-decoration: none;
+  text-transform: uppercase;
+  padding-bottom: 5px;
+  position: relative;
+  transition: color 0.3s ease;
+
+  // Gạch chân dưới
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 0;
+    height: 2px;
+    background-color: #000;
+    transition: width 0.3s ease-out;
+  }
+
+  &:hover {
+    color: #000;
+  }
+  
+  // Style cho trạng thái active (được chọn)
+  &.active {
+    color: #c92127; // Màu đỏ
+    font-weight: 700; // In đậm
+    &::after {
+      width: 100%; // Hiển thị gạch chân
+      background-color: #c92127;
+    }
+  }
+}

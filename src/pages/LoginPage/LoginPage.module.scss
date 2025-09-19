@@ -1,0 +1,57 @@
+.loginPage {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 80vh;
+  background-color: #f8f9fa;
+  padding: 40px 0;
+}
+
+.loginContainer {
+  width: 100%;
+  max-width: 450px;
+  background-color: #fff;
+  padding: 30px 40px 40px; // Điều chỉnh padding
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+}
+
+/* --- CSS MỚI CHO TAB --- */
+.tabHeader {
+  display: flex;
+  border-bottom: 1px solid #eee;
+  margin-bottom: 10px;
+}
+
+.tabButton {
+  flex: 1;
+  padding: 15px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: #888;
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.3s ease;
+
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px; // Nằm ngay trên đường viền
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background-color: #007bff;
+    transform: scaleX(0); // Bắt đầu với chiều rộng bằng 0
+    transition: transform 0.3s ease;
+  }
+  
+  &.active {
+    color: #222;
+    &::after {
+      transform: scaleX(1); // Mở rộng ra đầy đủ
+    }
+  }
+}

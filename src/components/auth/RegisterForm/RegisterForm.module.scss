@@ -1,0 +1,43 @@
+import React, { useState } from 'react';
+import styles from './LoginPage.module.scss';
+import Header from '../../components/layout/Header/Header';
+import Footer from '../../components/layout/Footer/Footer';
+import LoginForm from '../../components/auth/LoginForm/LoginForm';
+import RegisterForm from '../../components/auth/RegisterForm/RegisterForm';
+
+const LoginPage = () => {
+  // 'login' hoặc 'register'
+  const [activeTab, setActiveTab] = useState('login');
+
+  return (
+    <>
+      <Header />
+      <div className={styles.loginPage}>
+        <div className={styles.loginContainer}>
+          {/* --- PHẦN TAB MỚI --- */}
+          <div className={styles.tabHeader}>
+            <button 
+              className={`${styles.tabButton} ${activeTab === 'login' ? styles.active : ''}`}
+              onClick={() => setActiveTab('login')}
+            >
+              Đăng nhập
+            </button>
+            <button 
+              className={`${styles.tabButton} ${activeTab === 'register' ? styles.active : ''}`}
+              onClick={() => setActiveTab('register')}
+            >
+              Đăng ký
+            </button>
+          </div>
+
+          {/* --- HIỂN THỊ FORM TƯƠNG ỨNG --- */}
+          {activeTab === 'login' ? <LoginForm /> : <RegisterForm />}
+          
+        </div>
+      </div>
+      <Footer />
+    </>
+  );
+};
+
+export default LoginPage;
