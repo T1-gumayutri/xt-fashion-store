@@ -158,3 +158,31 @@
   color: #fff;
   &:hover { background-color: #a11a20; }
 }
+// Thêm vào cuối file
+.quantityAdjuster {
+  display: flex;
+  align-items: center;
+  border: 1px solid #eee;
+  width: fit-content;
+  border-radius: 4px;
+  margin-top: 8px;
+
+  button {
+    width: 25px;
+    height: 25px;
+    border: none;
+    background-color: #f8f8f8;
+    cursor: pointer;
+  }
+
+  span {
+    width: 30px;
+    text-align: center;
+    font-weight: 500;
+  }
+  // Thêm vào file SideCart.module.scss
+.itemCheckbox {
+  margin-right: 10px;
+  transform: scale(1.2); // Cho checkbox to hơn một chút
+}
+}

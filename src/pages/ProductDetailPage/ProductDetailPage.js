@@ -9,7 +9,8 @@ import { useCart } from '../../contexts/CartContext';
 import { useAuth } from '../../contexts/AuthContext';
 import { useWishlist } from '../../contexts/WishlistContext';
 import { toast } from 'react-toastify';
-// XÓA DÒNG IMPORT KHÔNG CẦN THIẾT
+
+// REMOVE THE UNNECESSARY IMPORT
 // import ProductDescription from '../../components/product/ProductDescription';
 
 const allProducts = [...shirtProducts, ...pantProducts, ...accessoryProducts];
@@ -87,6 +88,11 @@ const ProductDetailPage = () => {
     setAvailableSizes(color.sizes);
     setSelectedSize(color.sizes[0]);
     setQuantity(1);
+
+    if (color.images && color.images.length > 0) {
+      setCurrentMainImage(color.images[0]);
+      setAllImages(color.images);
+    }
   };
   
   const handleQuantityChange = (amount) => {
@@ -191,7 +197,7 @@ const ProductDetailPage = () => {
                 </button>
             </div>
             
-            {/* THAY THẾ COMPONENT BẰNG CODE HIỂN THỊ TRỰC TIẾP */}
+            {/* REPLACE THE COMPONENT WITH THE DIRECT RENDERING LOGIC */}
             <div className={styles.description}>
               <h3 className={styles.descriptionTitle}>Mô tả sản phẩm</h3>
               <div 

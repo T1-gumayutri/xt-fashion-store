@@ -12,12 +12,22 @@ export const CartProvider = ({ children }) => {
     }
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
+  const [selectedItems, setSelectedItems] = useState([]);
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
+    // Tự động chọn tất cả sản phẩm khi giỏ hàng thay đổi
+    setSelectedItems(cartItems.map(item => `${item.id}-${item.color}-${item.size}`));
   }, [cartItems]);
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
+  const toggleSelectItem = (itemIdentifier) => {
+    setSelectedItems(prevSelected => 
+      prevSelected.includes(itemIdentifier)
+        ? prevSelected.filter(id => id !== itemIdentifier)
+        : [...prevSelected, itemIdentifier]
+    );
+  };
 
   const addToCart = (product, selectedColor, selectedSize, quantity) => {
     setCartItems(prevItems => {
@@ -70,7 +80,9 @@ export const CartProvider = ({ children }) => {
         updateQuantity,
         isCartOpen, // <-- Thêm vào context
         openCart,   // <-- Thêm vào context
-        closeCart   // <-- Thêm vào context
+        closeCart,   // <-- Thêm vào context
+        selectedItems, // <-- Thêm
+        toggleSelectItem // <-- Thêm
       }}
     >
       {children}

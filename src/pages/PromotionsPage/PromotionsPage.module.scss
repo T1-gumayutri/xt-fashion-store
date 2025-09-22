@@ -1,0 +1,98 @@
+.promoContainer {
+  max-width: 800px;
+  margin: 40px auto;
+  padding: 20px;
+
+  h1 {
+    text-align: center;
+    font-size: 2rem;
+    margin-bottom: 10px;
+  }
+}
+
+.subtitle {
+  text-align: center;
+  color: #888;
+  margin-bottom: 40px;
+}
+
+.promoList {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.promoCard {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  border: 2px dashed #ddd;
+  border-radius: 8px;
+  background-color: #fafafa;
+
+  @media (max-width: 576px) {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+}
+
+.promoInfo {
+  flex-grow: 1;
+}
+
+.promoCode {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #c92127;
+  margin-bottom: 8px;
+  letter-spacing: 1px;
+}
+
+.promoDescription {
+  font-size: 1rem;
+  color: #555;
+  margin-bottom: 10px;
+}
+
+.promoExpiry {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.promoAction {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+
+  @media (max-width: 576px) {
+    width: 100%;
+    align-items: stretch;
+  }
+}
+
+.promoQuantity {
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: #333;
+}
+
+.copyButton {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 20px;
+  background-color: #222;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #000;
+  }
+}

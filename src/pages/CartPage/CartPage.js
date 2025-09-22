@@ -6,18 +6,21 @@ import { Link } from 'react-router-dom';
 import { FiMinus, FiPlus, FiTrash2 } from 'react-icons/fi';
 
 const CartPage = () => {
-  const { cartItems, removeFromCart, updateQuantity } = useCart();
+  const { cartItems, removeFromCart, updateQuantity, selectedItems, toggleSelectItem } = useCart();
 
   const formatPrice = (price) => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
   };
 
-  const cartTotal = cartItems.reduce((total, item) => total + (item.price * item.quantity), 0);
+  // Chỉ tính tổng các sản phẩm được chọn
+  const cartTotal = cartItems
+    .filter(item => selectedItems.includes(`${item.id}-${item.color}-${item.size}`))
+    .reduce((total, item) => total + (item.price * item.quantity), 0);
 
   return (
-    <PageLayout pageTitle="Giỏ hàng của bạn">
+    <PageLayout pageTitle="Giỏ hàng">
       <div className={styles.cartContainer}>
-        <h1>Giỏ hàng</h1>
+        <h1>Giỏ hàng của bạn</h1>
         {cartItems.length === 0 ? (
           <div className={styles.emptyCart}>
             <p>Giỏ hàng của bạn đang trống.</p>
@@ -26,27 +29,41 @@ const CartPage = () => {
         ) : (
           <div className={styles.cartGrid}>
             <div className={styles.cartItems}>
-              {cartItems.map((item, index) => (
-                <div key={index} className={styles.cartItem}>
-                  <img src={item.imageUrl} alt={item.name} />
-                  <div className={styles.itemInfo}>
-                    <p className={styles.itemName}>{item.name}</p>
-                    <p className={styles.itemDetails}>Màu: {item.color} / Size: {item.size}</p>
-                    <p className={styles.itemPrice}>{formatPrice(item.price)}</p>
+              {cartItems.map((item) => {
+                const itemIdentifier = `${item.id}-${item.color}-${item.size}`;
+                const isSelected = selectedItems.includes(itemIdentifier);
+
+                return (
+                  <div key={itemIdentifier} className={styles.cartItem}>
+                    <input 
+                      type="checkbox"
+                      className={styles.itemCheckbox}
+                      checked={isSelected}
+                      onChange={() => toggleSelectItem(itemIdentifier)}
+                    />
+                    <img 
+                      src={item.imageUrl || (item.images && item.images.length > 0 ? item.images[0] : '')} 
+                      alt={item.name} 
+                    />
+                    <div className={styles.itemInfo}>
+                      <p className={styles.itemName}>{item.name}</p>
+                      <p className={styles.itemDetails}>Màu: {item.color} / Size: {item.size}</p>
+                      <p className={styles.itemPrice}>{formatPrice(item.price)}</p>
+                    </div>
+                    <div className={styles.itemQuantity}>
+                      <button onClick={() => updateQuantity(item.id, item.color, item.size, -1)}><FiMinus /></button>
+                      <input type="text" value={item.quantity} readOnly />
+                      <button onClick={() => updateQuantity(item.id, item.color, item.size, 1)}><FiPlus /></button>
+                    </div>
+                    <div className={styles.itemTotalPrice}>
+                      {formatPrice(item.price * item.quantity)}
+                    </div>
+                    <button onClick={() => removeFromCart(item.id, item.color, item.size)} className={styles.removeItem}>
+                      <FiTrash2 />
+                    </button>
                   </div>
-                  <div className={styles.itemQuantity}>
-                    <button onClick={() => updateQuantity(item.id, item.color, item.size, -1)}><FiMinus /></button>
-                    <input type="text" value={item.quantity} readOnly />
-                    <button onClick={() => updateQuantity(item.id, item.color, item.size, 1)}><FiPlus /></button>
-                  </div>
-                  <div className={styles.itemTotalPrice}>
-                    {formatPrice(item.price * item.quantity)}
-                  </div>
-                  <button onClick={() => removeFromCart(item.id, item.color, item.size)} className={styles.removeItem}>
-                    <FiTrash2 />
-                  </button>
-                </div>
-              ))}
+                )
+              })}
             </div>
             <div className={styles.cartSummary}>
               <h2>Tổng cộng</h2>
