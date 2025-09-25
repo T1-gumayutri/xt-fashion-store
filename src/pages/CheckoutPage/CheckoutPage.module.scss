@@ -1,0 +1,144 @@
+.checkoutContainer {
+  max-width: 1100px;
+  margin: 40px auto;
+  padding: 0 15px;
+}
+
+.checkoutGrid {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr; // Cột thông tin rộng hơn
+  gap: 40px;
+
+  @media (max-width: 992px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Cột thông tin khách hàng */
+.customerInfo {
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+}
+
+.inputField {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+textarea.inputField {
+  min-height: 100px;
+  resize: vertical;
+}
+
+/* Cột tóm tắt đơn hàng */
+.orderSummary {
+  background-color: #f8f9fa;
+  padding: 25px;
+  border-radius: 8px;
+  height: fit-content;
+
+  h2 {
+    font-size: 1.5rem;
+    margin-bottom: 20px;
+  }
+}
+
+.summaryItems {
+  max-height: 300px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-right: 10px;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+
+  img {
+    width: 60px;
+    height: 75px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .itemInfo {
+    flex-grow: 1;
+    font-size: 0.9rem;
+    p { margin: 0 0 5px; font-weight: 500; }
+    span { color: #888; }
+  }
+
+  .itemPrice {
+    font-weight: 500;
+  }
+}
+
+.promoCode {
+  display: flex;
+  margin-bottom: 20px;
+
+  input {
+    flex-grow: 1;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-right: none;
+    border-radius: 4px 0 0 4px;
+  }
+  
+  button {
+    padding: 10px 20px;
+    border: 1px solid #222;
+    background-color: #f8f8f8;
+    cursor: pointer;
+    font-weight: 500;
+    border-radius: 0 4px 4px 0;
+  }
+}
+
+.calculation {
+  border-top: 1px solid #ddd;
+  padding-top: 20px;
+}
+
+.calcRow, .calcTotal {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.calcTotal {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 15px;
+}
+
+.totalPrice {
+  color: #c92127;
+}
+
+.placeOrderButton {
+  width: 100%;
+  padding: 14px;
+  border: none;
+  border-radius: 4px;
+  background-color: #c92127;
+  color: #fff;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+
+  &:hover {
+    background-color: #a11a20;
+  }
+}

@@ -7,19 +7,20 @@ import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 const faqData = [
   {
     question: 'Làm thế nào để tôi đặt hàng online?',
-    answer: 'TORANO rất vui lòng hỗ trợ khách hàng đặt hàng online bằng một trong những cách đặt hàng sau:<br/>- Truy cập trang web: https://torano.vn/<br/>- Liên hệ số hotline: 0964942121 để đặt sản phẩm<br/>- Chat với tư vấn viên trên fanpage của TORANO: https://www.facebook.com/Torano.vn'
+    answer: 'TORANO rất vui lòng hỗ trợ khách hàng đặt hàng online bằng một trong những cách đặt hàng sau:<br/>- Truy cập trang web: https://xtfashion.vn/<br/>- Liên hệ số hotline: 0987654321 để đặt sản phẩm<br/>- Chat với tư vấn viên trên fanpage của TORANO: https://www.facebook.com/xtfashion.vn'
   },
   {
     question: 'Đặt hàng trên web tôi muốn đổi mẫu thì làm thế nào?',
-    answer: 'Dạ anh chị có thể xem hàng trước khi thanh toán! Hiện tại Torano chưa áp dụng chính sách thử hàng khi mua hàng online! Rất mong anh chị thông cảm!'
+    answer: 'Dạ chào anh/chị! Anh/chị vui lòng liên hệ trực tiếp CSKH qua https://www.facebook.com/xtfashion.vn/inbox hoặc hotline 0987654321 Cảm ơn anh chị đã lựa chọn XT Fashion!'
   },
   {
     question: 'Tôi có được xem hàng và thử không?',
-    answer: 'Dạ anh/chị có thể đổi hàng 1 lần duy nhất trong vòng 7 ngày tại bất kỳ cơ sở của Torano hoặc gửi về kho online với điều kiện sản phẩm còn nguyên tem mác gắn liền sản phẩm và hóa đơn áp dụng cho những sản phẩm có mức sale nhỏ hơn 50%.'
+    answer: 'Dạ anh chị có thể xem hàng trước khi thanh toán! Hiện tại Torano chưa áp dụng chính sách thử hàng khi mua hàng online! Rất mong anh chị thông cảm!'
+
   },
   {
     question: 'Tôi muốn đổi màu (size) thì cần làm gì?',
-    answer: 'Nội dung trả lời cho câu hỏi này sẽ được cập nhật sau.'
+    answer: 'Dạ anh/chị có thể đổi hàng 1 lần duy nhất trong vòng 7 ngày tại bất kỳ cơ sở của XT Fashion hoặc gửi về kho online với điều kiện sản phẩm còn nguyên tem mác gắn liền sản phẩm và hóa đơn áp dụng cho những sản phẩm có mức sale nhỏ hơn 50%.'
   },
   {
     question: 'Tôi mua hàng rồi, không vừa ý có thể đổi lại hay không?',

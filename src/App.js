@@ -22,6 +22,7 @@ import SideCart from './components/cart/SideCart';
 import SideWishlist from './components/wishlist/SideWishlist';
 import { WishlistProvider } from './contexts/WishlistContext';
 import PromotionsPage from './pages/PromotionsPage/PromotionsPage'; 
+import CheckoutPage from './pages/CheckoutPage/CheckoutPage';
 const GOOGLE_CLIENT_ID ="1092411273263-rm0r8kjh9d3684n7pro1u1ublfht6ddg.apps.googleusercontent.com";
 function App() {
   return (
@@ -59,6 +60,7 @@ function App() {
           <Route path="/privacy-policy" element={<PrivacyPolicyPage />} />
           <Route path="/faq" element={<FaqPage />} />
           <Route path="/khuyen-mai" element={<PromotionsPage />} /> {/* <-- THÊM ROUTE */}
+          <Route path="/checkout" element={<CheckoutPage />} /> {/* <-- THÊM ROUTE */}
           {/* Add other pages here in the future */}
         </Routes>
       </div>

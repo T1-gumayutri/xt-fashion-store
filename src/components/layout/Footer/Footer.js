@@ -13,11 +13,7 @@ const socialLinks = [
 
 const paymentMethods = [
   { name: 'VNPAY', icon: '/assets/images/vnpay.png' }, // Thay bằng đường dẫn ảnh thật nếu có
-  { name: 'ZaloPay', icon: '/assets/images/zalopay.png' },
-  { name: 'Moca', icon: '/assets/images/moca.png' },
-  { name: 'Grab', icon: '/assets/images/grab.png' },
-  { name: 'Visa', icon: '/assets/images/visa.png' },
-  { name: 'Napas', icon: '/assets/images/napas.png' },
+  
 ];
 
 const companyLinks = [
@@ -35,7 +31,7 @@ const Footer = () => {
       <div className={styles.container}>
         {/* Cột 1: Thông tin chung */}
         <div className={styles.column}>
-          <h3 className={styles.columnTitle}>Thời trang nam TORANO</h3>
+          <h3 className={styles.columnTitle}>Thời trang nam XT FASHION</h3>
           <p className={styles.description}>
             Hệ thống thời trang cho phái mạnh hàng đầu Việt Nam, hướng tới phong cách nam tính, lịch lãm và trẻ trung.
           </p>
@@ -68,7 +64,7 @@ const Footer = () => {
             <strong>Fax:</strong> 090463556
           </p>
           <p>
-            <strong>Email:</strong> cskh@torano.vn
+            <strong>Email:</strong> cskh@xtfashion.vn
           </p>
 
           <h3 className={styles.subTitle}>Vị trí cửa hàng</h3>
@@ -116,7 +112,7 @@ const Footer = () => {
 
       {/* Footer bottom */}
       <div className={styles.footerBottom}>
-        <p>Copyright © 2025 Torano. Powered by Haravan</p>
+        <p>Copyright © 2025 XT-Fashion. Powered by Haravan</p>
       </div>
     </footer>
   );

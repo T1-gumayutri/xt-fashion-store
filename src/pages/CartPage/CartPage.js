@@ -79,7 +79,9 @@ const CartPage = () => {
                 <span>Thành tiền</span>
                 <span>{formatPrice(cartTotal)}</span>
               </div>
-              <button className={styles.checkoutButton}>Tiến hành thanh toán</button>
+              <Link to="/checkout" className={styles.checkoutButton}>
+                Tiến hành thanh toán
+              </Link>
             </div>
           </div>
         )}
