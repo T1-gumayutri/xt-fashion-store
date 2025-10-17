@@ -146,3 +146,45 @@
   align-items: center;
   gap: 15px;
 }
+.searchArea {
+  margin-left: 40px; /* Tạo khoảng cách với menu */
+}
+
+.searchForm {
+  display: flex;
+  align-items: center;
+  border: 1px solid #ddd;
+  border-radius: 20px;
+  overflow: hidden;
+  background-color: #f5f5f5;
+}
+
+.searchInput {
+  border: none;
+  outline: none;
+  padding: 8px 15px;
+  font-size: 0.9rem;
+  background-color: transparent;
+  width: 200px;
+  transition: width 0.3s ease;
+
+  &:focus {
+    width: 250px; /* Mở rộng ô input khi focus */
+  }
+}
+
+.searchButton {
+  background: none;
+  border: none;
+  padding: 0 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  color: #555;
+
+  &:hover {
+    color: #000;
+  }
+}

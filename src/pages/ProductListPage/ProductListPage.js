@@ -1,26 +1,67 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import PageLayout from '../../components/layout/PageLayout/PageLayout';
 import ProductCard from '../../components/product/ProductCard/ProductCard';
 import styles from './ProductListPage.module.scss';
-// Chúng ta sẽ lấy tất cả sản phẩm áo từ file mock data
-import { shirtProducts } from '../../data/mockData';
+// Chỉ import dữ liệu áo
+import { shirtProducts } from '../../data/mockData'; 
 
 const ProductListPage = () => {
-  const pageTitle = "Áo Xuân Hè";
-  const products = shirtProducts; // Lấy danh sách sản phẩm áo
+    const [sortOrder, setSortOrder] = useState('default');
 
-  return (
-    <PageLayout pageTitle={pageTitle}>
-      <div className={styles.container}>
-        <h1 className={styles.pageTitle}>{pageTitle}</h1>
-        <div className={styles.productGrid}>
-          {products.map((product) => (
-            <ProductCard key={product.id} product={product} />
-          ))}
-        </div>
-      </div>
-    </PageLayout>
-  );
+    // Logic sắp xếp giờ sẽ hoạt động trên shirtProducts
+    const sortedProducts = useMemo(() => {
+        // Tạo bản sao của mảng shirtProducts để sắp xếp
+        const sorted = [...shirtProducts]; 
+        switch (sortOrder) {
+            case 'price-asc':
+                sorted.sort((a, b) => a.price - b.price);
+                break;
+            case 'price-desc':
+                sorted.sort((a, b) => b.price - a.price);
+                break;
+            case 'name-asc':
+                sorted.sort((a, b) => a.name.localeCompare(b.name));
+                break;
+            case 'name-desc':
+                sorted.sort((a, b) => b.name.localeCompare(a.name));
+                break;
+            default:
+                // Trả về mảng gốc nếu là 'default'
+                break;
+        }
+        return sorted;
+    }, [sortOrder]);
+
+    // Đổi tiêu đề trang thành "Áo"
+    return (
+        <PageLayout pageTitle="Áo xuân hè">
+            <div className={styles.container}>
+                <div className={styles.toolbar}>
+                    <div className={styles.sortOptions}>
+                        <label htmlFor="sort">Sắp xếp theo: </label>
+                        <select 
+                            id="sort" 
+                            value={sortOrder} 
+                            onChange={(e) => setSortOrder(e.target.value)}
+                            className={styles.sortSelect}
+                        >
+                            <option value="default">Mặc định</option>
+                            <option value="price-asc">Giá: Tăng dần</option>
+                            <option value="price-desc">Giá: Giảm dần</option>
+                            <option value="name-asc">Tên: A-Z</option>
+                            <option value="name-desc">Tên: Z-A</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div className={styles.productGrid}>
+                    {sortedProducts.map((product) => (
+                        <ProductCard key={product.id} product={product} />
+                    ))}
+                </div>
+            </div>
+        </PageLayout>
+    );
 };
 
 export default ProductListPage;

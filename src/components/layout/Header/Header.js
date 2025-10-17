@@ -1,9 +1,9 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../../contexts/AuthContext';
 import styles from './Header.module.scss';
 import logo from '../../../assets/images/logo.png';
-import { FiUser, FiShoppingCart, FiHeart } from 'react-icons/fi';
+import { FiUser, FiShoppingCart, FiHeart, FiSearch } from 'react-icons/fi';
 import { slugify } from '../../../helpers/slugify';
 import { useCart } from '../../../contexts/CartContext';
 import { useWishlist } from '../../../contexts/WishlistContext';
@@ -49,11 +49,19 @@ const Header = () => {
   const { cartItems, openCart } = useCart();
   const { wishlist, openWishlist } = useWishlist();
   const navigate = useNavigate();
+  const [searchQuery, setSearchQuery] = useState('');
   const totalItemsInCart = cartItems.reduce((total, item) => total + item.quantity, 0);
   const handleLogout = () => {
     logout();
     navigate('/');
   };
+  const handleSearchSubmit = (e) => {
+        e.preventDefault();
+        if (searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery.trim())}`);
+            setSearchQuery(''); // Xóa nội dung ô tìm kiếm sau khi submit
+        }
+    };
 
   return (
     <header className={styles.header}>
@@ -114,6 +122,20 @@ const Header = () => {
             ))}
           </ul>
         </nav>
+        <div className={styles.searchArea}>
+                    <form onSubmit={handleSearchSubmit} className={styles.searchForm}>
+                        <input 
+                            type="text" 
+                            placeholder="Tìm kiếm sản phẩm..." 
+                            className={styles.searchInput}
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                        />
+                        <button type="submit" className={styles.searchButton}>
+                            <FiSearch />
+                        </button>
+                    </form>
+                </div>
       </div>
     </header>
   );
