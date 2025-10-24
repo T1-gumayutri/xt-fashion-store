@@ -1,0 +1,69 @@
+/* ColorFilter.module.scss */
+.colorFilterContainer {
+  width: 100%;
+  h4 {
+    margin-top: 0;
+    margin-bottom: 10px;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+}
+
+.swatchWrapper {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+}
+
+.colorSwatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 1px solid #ddd;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  /* Style cho ô màu khi được chọn */
+  &.selected {
+    border-color: #333;
+    box-shadow: 0 0 0 2px #fff, 0 0 0 4px #333; // Hiệu ứng viền kép
+  }
+}
+
+.checkIconLight {
+  color: #fff;
+  font-size: 0.8rem;
+}
+.checkIconDark {
+  color: #000; // Dấu check màu đen cho nền trắng
+  font-size: 0.8rem;
+}
+
+.allButton {
+  padding: 4px 12px;
+  border: 1px solid #ccc;
+  border-radius: 15px;
+  background-color: #fff;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s ease;
+
+  &:hover {
+    background-color: #f4f4f4;
+  }
+
+  &.selected {
+    background-color: #333;
+    color: #fff;
+    border-color: #333;
+  }
+}

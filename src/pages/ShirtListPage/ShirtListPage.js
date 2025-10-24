@@ -2,63 +2,147 @@ import React, { useState, useMemo } from 'react';
 import PageLayout from '../../components/layout/PageLayout/PageLayout';
 import ProductCard from '../../components/product/ProductCard/ProductCard';
 import styles from './ShirtListPage.module.scss';
-// Chỉ import dữ liệu áo
-import { shirtProducts } from '../../data/mockData'; 
+import { shirtProducts } from '../../data/mockData'; //
+
+// --- Imports MỚI ---
+import PriceRangeSlider from '../../components/common/PriceRangeSlider/PriceRangeSlider';
+import ColorFilter from '../../components/common/ColorFilter/ColorFilter';
+
+// --- Hàm tiện ích: Lấy danh sách màu duy nhất ---
+//
+const getUniqueColors = (products) => {
+    const colorMap = new Map();
+    products.forEach(product => {
+        product.inventory.forEach(item => {
+            if (item.color && item.colorHex && !colorMap.has(item.color)) {
+                colorMap.set(item.color, item.colorHex);
+            }
+        });
+    });
+    return Array.from(colorMap, ([name, hex]) => ({ name, hex }));
+};
+// ---------------------------------------------
+
+// --- Tính toán giá trị Min/Max/Colors ---
+const prices = shirtProducts.map(p => p.price); //
+const MIN_PRICE = prices.length > 0 ? Math.min(...prices) : 0;
+const MAX_PRICE = prices.length > 0 ? Math.max(...prices) : 1000000;
+// Chỉ gọi hàm 1 lần
+const AVAILABLE_COLORS = getUniqueColors(shirtProducts);
+// -----------------------------------------
 
 const ShirtListPage = () => {
     const [sortOrder, setSortOrder] = useState('default');
+    
+    // --- State cho bộ lọc ---
+    const [priceFilter, setPriceFilter] = useState([MIN_PRICE, MAX_PRICE]);
+    const [colorFilter, setColorFilter] = useState([]); // State MỚI (mảng các màu)
 
-    // Logic sắp xếp giờ sẽ hoạt động trên shirtProducts
+    // --- Hàm callback cho bộ lọc ---
+    const handlePriceFilterChange = (newValue) => {
+        setPriceFilter(newValue);
+    };
+    const handleColorFilterChange = (selectedColors) => { // Hàm MỚI
+        setColorFilter(selectedColors);
+    };
+
+    // --- Cập nhật logic lọc và sắp xếp ---
     const sortedProducts = useMemo(() => {
-        // Tạo bản sao của mảng shirtProducts để sắp xếp
-        const sorted = [...shirtProducts]; 
-        switch (sortOrder) {
+        let products = [...shirtProducts]; //
+
+        // 1. Lọc theo giá
+        products = products.filter(
+            (product) =>
+                product.price >= priceFilter[0] && product.price <= priceFilter[1]
+        );
+
+        // 2. Lọc theo màu (MỚI)
+        if (colorFilter.length > 0) {
+            products = products.filter(product =>
+                // Kiểm tra xem bất kỳ màu nào trong 'inventory' của sản phẩm
+                // có nằm trong mảng 'colorFilter' hay không
+                product.inventory.some(item => colorFilter.includes(item.color)) //
+            );
+        }
+
+        // 3. Sắp xếp (giữ nguyên)
+        switch (sortOrder) { //
             case 'price-asc':
-                sorted.sort((a, b) => a.price - b.price);
+                products.sort((a, b) => a.price - b.price);
                 break;
             case 'price-desc':
-                sorted.sort((a, b) => b.price - a.price);
+                products.sort((a, b) => b.price - a.price);
                 break;
             case 'name-asc':
-                sorted.sort((a, b) => a.name.localeCompare(b.name));
+                products.sort((a, b) => a.name.localeCompare(b.name));
                 break;
             case 'name-desc':
-                sorted.sort((a, b) => b.name.localeCompare(a.name));
+                products.sort((a, b) => b.name.localeCompare(a.name));
                 break;
             default:
-                // Trả về mảng gốc nếu là 'default'
                 break;
         }
-        return sorted;
-    }, [sortOrder]);
+        return products;
+    }, [sortOrder, priceFilter, colorFilter]); // Thêm 'colorFilter' vào dependency
 
-    // Đổi tiêu đề trang thành "Áo"
     return (
         <PageLayout pageTitle="Áo xuân hè">
             <div className={styles.container}>
                 <div className={styles.toolbar}>
-                    <div className={styles.sortOptions}>
-                        <label htmlFor="sort">Sắp xếp theo: </label>
-                        <select 
-                            id="sort" 
-                            value={sortOrder} 
-                            onChange={(e) => setSortOrder(e.target.value)}
-                            className={styles.sortSelect}
-                        >
-                            <option value="default">Mặc định</option>
-                            <option value="price-asc">Giá: Tăng dần</option>
-                            <option value="price-desc">Giá: Giảm dần</option>
-                            <option value="name-asc">Tên: A-Z</option>
-                            <option value="name-desc">Tên: Z-A</option>
-                        </select>
+                    
+                    {/* 1. Bộ lọc giá */}
+                    <div className={styles.filterContainer}>
+                        <PriceRangeSlider
+                            min={MIN_PRICE}
+                            max={MAX_PRICE}
+                            onFilterChange={handlePriceFilterChange}
+                        />
+                    </div>
+
+                    {/* 2. Bộ lọc màu (MỚI) */}
+                    <div className={styles.colorFilterContainer}>
+                        <ColorFilter
+                            availableColors={AVAILABLE_COLORS}
+                            onChange={handleColorFilterChange}
+                        />
+                    </div>
+
+                    {/* 3. Số lượng sản phẩm & Sắp xếp (gom vào 1 div) */}
+                    <div className={styles.controlsContainer}>
+                        <div className={styles.productCount}>
+                            Hiển thị {sortedProducts.length} sản phẩm
+                        </div>
+                        <div className={styles.sortOptions}>
+                            <label htmlFor="sort">Sắp xếp theo: </label>
+                            <select 
+                                id="sort" 
+                                value={sortOrder} 
+                                onChange={(e) => setSortOrder(e.target.value)}
+                                className={styles.sortSelect}
+                            >
+                                <option value="default">Mặc định</option>
+                                <option value="price-asc">Giá: Tăng dần</option>
+                                <option value="price-desc">Giá: Giảm dần</option>
+                                <option value="name-asc">Tên: A-Z</option>
+                                <option value="name-desc">Tên: Z-A</option>
+                            </select>
+                        </div>
                     </div>
                 </div>
 
+                {/* Lưới sản phẩm */}
                 <div className={styles.productGrid}>
                     {sortedProducts.map((product) => (
                         <ProductCard key={product.id} product={product} />
                     ))}
                 </div>
+
+                {/* Thông báo khi không có sản phẩm */}
+                {sortedProducts.length === 0 && (
+                    <div className={styles.noResults}>
+                        <p>Không tìm thấy sản phẩm nào phù hợp.</p>
+                    </div>
+                )}
             </div>
         </PageLayout>
     );
