@@ -1,11 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import PageLayout from '../../components/layout/PageLayout/PageLayout';
 import ProductCard from '../../components/product/ProductCard/ProductCard';
-import styles from './ProductListPage.module.scss';
+import styles from './ShirtListPage.module.scss';
 // Chỉ import dữ liệu áo
 import { shirtProducts } from '../../data/mockData'; 
 
-const ProductListPage = () => {
+const ShirtListPage = () => {
     const [sortOrder, setSortOrder] = useState('default');
 
     // Logic sắp xếp giờ sẽ hoạt động trên shirtProducts
@@ -64,4 +64,4 @@ const ProductListPage = () => {
     );
 };
 
-export default ProductListPage;
+export default ShirtListPage;

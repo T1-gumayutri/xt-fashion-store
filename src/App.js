@@ -8,7 +8,7 @@ import './assets/styles/main.scss';
 import FaqPage from './pages/FaqPage/FaqPage';
 import PrivacyPolicyPage from './pages/PrivacyPolicyPage/PrivacyPolicyPage';
 import ScrollToTop from './components/common/ScrollToTop';
-import ProductListPage from './pages/ProductListPage/ProductListPage';
+import ShirtListPage from './pages/ShirtListPage/ShirtListPage';
 import AccessoriesListPage from './pages/AccessoriesListPage/AccessoriesListPage';
 import PantsListPage from './pages/PantsListPage/PantsListPage';
 import CollectionPage from './pages/CollectionPage/CollectionPage';
@@ -51,7 +51,7 @@ function App() {
         <Routes>
           <Route path="/" element={<HomePage />} />
           <Route path="/cart" element={<CartPage />} /> {/* <-- THÊM ROUTE */}
-          <Route path="/ao-xuan-he" element={<ProductListPage />} /> {/* <-- THÊM ROUTE MỚI */}
+          <Route path="/ao-xuan-he" element={<ShirtListPage />} /> {/* <-- THÊM ROUTE MỚI */}
           <Route path="/quan" element={<PantsListPage />} /> {/* <-- THÊM ROUTE MỚI */}
           <Route path="/phu-kien" element={<AccessoriesListPage />} /> {/* <-- THÊM ROUTE MỚI */}
           <Route path="/collections/:subCategory" element={<CollectionPage />} />
