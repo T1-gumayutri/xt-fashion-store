@@ -29,7 +29,7 @@ import SearchResultsPage from './pages/SearchResultsPage/SearchResultsPage';
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 import ProtectedRoute from './components/common/ProtectedRoute/ProtectedRoute';
 // -------------------------------------
-
+import OrderSuccessPage from './pages/OrderSuccessPage/OrderSuccessPage';
 const GOOGLE_CLIENT_ID ="1092411273263-rm0r8kjh9d3684n7pro1u1ublfht6ddg.apps.googleusercontent.com";
 
 function App() {
@@ -75,6 +75,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/order-success" element={<OrderSuccessPage />} />
             {/* Thêm các route cần đăng nhập khác vào đây sau này */}
           </Route>
           
