@@ -31,7 +31,7 @@ const CheckoutPage = () => {
     if (user) {
       setFormData(prev => ({
         ...prev,
-        fullName: user.fullName || '',
+        fullName: user.name || '',
         email: user.email || '',
       }));
     }
