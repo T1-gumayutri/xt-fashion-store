@@ -4,9 +4,9 @@ import { FiUser, FiMail, FiLock, FiPhone } from 'react-icons/fi';
 import authApi from '../../../api/authApi'; // <-- IMPORT API SERVICE
 
 const RegisterForm = () => {
-  const [name, setName] = useState('');
+  const [fullname, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [phone, setPhone] = useState('');
+  const [phoneNumber, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [message, setMessage] = useState(''); // To show success/error messages
   const [loading, setLoading] = useState(false);
@@ -17,7 +17,7 @@ const RegisterForm = () => {
     setLoading(true);
 
     try {
-      const response = await authApi.register(name, email, phone, password);
+      const response = await authApi.register(fullname, email, phoneNumber, password);
       setMessage(response.data.msg);
     } catch (error) {
       const errorMsg = error.response?.data?.msg || "Đã có lỗi xảy ra. Vui lòng thử lại.";
@@ -32,7 +32,7 @@ const RegisterForm = () => {
       {/* ... input fields for name, email, phone, password ... */}
       <div className={styles.inputGroup}>
         <FiUser className={styles.inputIcon} />
-        <input type="text" placeholder="Họ và tên" value={name} onChange={(e) => setName(e.target.value)} required />
+        <input type="text" placeholder="Họ và tên" value={fullname} onChange={(e) => setName(e.target.value)} required />
       </div>
       <div className={styles.inputGroup}>
         <FiMail className={styles.inputIcon} />
@@ -40,7 +40,7 @@ const RegisterForm = () => {
       </div>
       <div className={styles.inputGroup}>
         <FiPhone className={styles.inputIcon} />
-        <input type="tel" placeholder="Số điện thoại" value={phone} onChange={(e) => setPhone(e.target.value)} required />
+        <input type="tel" placeholder="Số điện thoại" value={phoneNumber} onChange={(e) => setPhone(e.target.value)} required />
       </div>
       <div className={styles.inputGroup}>
         <FiLock className={styles.inputIcon} />
