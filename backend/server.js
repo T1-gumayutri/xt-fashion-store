@@ -7,15 +7,16 @@ const cors = require('cors');
 const { OAuth2Client } = require('google-auth-library');
 
 const app = express();
-app.use(cors()); // Allow requests from our React app
-app.use(express.json()); // Allow server to read JSON data
+app.use(cors());
+app.use(express.json());
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
-// --- Database Connection ---
-mongoose.connect(process.env.MONGO_URI)
+// --- Kết nối MongoDB ---
+mongoose
+  .connect(process.env.MONGO_URI)
   .then(() => console.log('MongoDB connected...'))
-  .catch(err => console.log(err));
+  .catch((err) => console.log(err));
 
 // --- User Model ---
 const UserSchema = new mongoose.Schema(
@@ -24,33 +25,37 @@ const UserSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true },
     phone: { type: String, required: true },
     password: { type: String, required: true },
-    role:   { type: String, default: 'user' },      // 'user' | 'admin' | 'manager' ...
-    status: { type: String, default: 'active' },    // 'active' | 'blocked'
+    role: { type: String, default: 'user' }, // 'user' | 'admin' | ...
+    status: { type: String, default: 'active' }, // 'active' | 'blocked'
   },
-  { timestamps: true }   
+  { timestamps: true }
 );
 const User = mongoose.model('User', UserSchema);
 
 // --- Promotion Model ---
 const PromotionSchema = new mongoose.Schema(
   {
-    code:   { type: String, required: true, unique: true },  // mã giảm giá
-    desc:   { type: String, default: "" },                   // mô tả
-    type:   { type: String, enum: ["percent", "fixed"], required: true },
-    value:  { type: Number, required: true },                // % hoặc số tiền
-    qty:    { type: Number, default: 0 },                    // số lượng mã
-    start:  { type: Date, required: true },                  // ngày bắt đầu
-    end:    { type: Date, required: true },                  // ngày kết thúc
-    status: { type: String, enum: ["active", "expired"], default: "active" },
+    code: { type: String, required: true, unique: true }, // mã giảm giá
+    desc: { type: String, default: '' }, // mô tả
+    type: { type: String, enum: ['percent', 'fixed'], required: true },
+    value: { type: Number, required: true }, // % hoặc số tiền
+    qty: { type: Number, default: 0 }, // số lượng mã
+    start: { type: Date, required: true }, // ngày bắt đầu
+    end: { type: Date, required: true }, // ngày kết thúc
+    status: {
+      type: String,
+      enum: ['active', 'expired'],
+      default: 'active',
+    },
   },
-  { timestamps: true } // có createdAt / updatedAt
+  { timestamps: true }
 );
 
-const Promotion = mongoose.model("Promotion", PromotionSchema);
+const Promotion = mongoose.model('Promotion', PromotionSchema);
 
 // --- Category Model ---
 const CategorySchema = new mongoose.Schema({
-  categoryName: { type: String, required: true },          // VD: "Quần"
+  categoryName: { type: String, required: true }, // VD: "Quần"
   slug: { type: String, required: true, unique: true }, // VD: "quan"
 });
 
@@ -58,30 +63,34 @@ const Category = mongoose.model('Category', CategorySchema);
 
 // --- Product Model ---
 const InventorySchema = new mongoose.Schema({
-  color: String,           // "Đen"
-  colorHex: String,        // "#000000"
-  sizes: [String],         // ["29","30","31"]
+  color: String, // "Đen"
+  colorHex: String, // "#000000"
+  sizes: [String], // ["29","30","31"]
 });
 
 const ProductSchema = new mongoose.Schema(
   {
     code: { type: String, required: true, unique: true }, // AJNR02
     name: { type: String, required: true },
-    category: { type: String, required: true },     // "Quần"
-    subCategory: { type: String, required: true },  // "Quần Dài"
+    category: { type: String, required: true }, // "Quần"
+    subCategory: { type: String, required: true }, // "Quần Dài"
     price: { type: Number, required: true },
-    stock: { type: Number, default: 0 },            // tổng tồn kho
+    stock: { type: Number, default: 0 }, // tổng tồn kho
     status: { type: String, enum: ['active', 'out'], default: 'active' },
-    images: [String],                                // ['/assets/...jpg', ...]
-    inventory: [InventorySchema],                    // như bạn mô tả
-    fullDescription: String,                         // HTML long text
+    images: [String], // ['/assets/...jpg', ...]
+    inventory: [InventorySchema], // như bạn mô tả
+    fullDescription: String, // HTML long text
   },
-  { timestamps: true }  // có createdAt / updatedAt
+  { timestamps: true }
 );
 
 const Product = mongoose.model('Product', ProductSchema);
 
-// --- API Endpoints ---
+// --- Import middleware sau khi User model đã đăng ký ---
+const { auth, adminOnly } = require('./middlewares/authMiddleware');
+
+
+// ================== AUTH ==================
 
 // 1. REGISTRATION ENDPOINT
 app.post('/api/auth/register', async (req, res) => {
@@ -100,7 +109,7 @@ app.post('/api/auth/register', async (req, res) => {
       password,
       role: 'user',
       status: 'active',
-});
+    });
 
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(password, salt);
@@ -121,12 +130,16 @@ app.post('/api/auth/login', async (req, res) => {
 
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: 'Email hoặc mật khẩu không đúng' });
+      return res
+        .status(400)
+        .json({ msg: 'Email hoặc mật khẩu không đúng' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Email hoặc mật khẩu không đúng' });
+      return res
+        .status(400)
+        .json({ msg: 'Email hoặc mật khẩu không đúng' });
     }
 
     const payload = { user: { id: user.id } };
@@ -136,7 +149,15 @@ app.post('/api/auth/login', async (req, res) => {
       { expiresIn: '5h' },
       (err, token) => {
         if (err) throw err;
-        res.json({ token, user: { name: user.name, email: user.email } });
+        res.json({
+          token,
+          user: {
+            id: user._id,
+            name: user.name,
+            email: user.email,
+            role: user.role,
+          },
+        });
       }
     );
   } catch (err) {
@@ -150,8 +171,8 @@ app.post('/api/auth/google', async (req, res) => {
   const { token } = req.body;
   try {
     const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID,
     });
     const { name, email } = ticket.getPayload();
 
@@ -160,8 +181,18 @@ app.post('/api/auth/google', async (req, res) => {
     if (user) {
       // User exists, log them in
       const payload = { user: { id: user.id } };
-      const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
-      res.json({ token: jwtToken, user: { name: user.name, email: user.email } });
+      const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: '5h',
+      });
+      return res.json({
+        token: jwtToken,
+        user: {
+          id: user._id,
+          name: user.name,
+          email: user.email,
+          role: user.role,
+        },
+      });
     } else {
       // User doesn't exist, create a new account
       const randomPassword = Math.random().toString(36).slice(-8);
@@ -179,10 +210,19 @@ app.post('/api/auth/google', async (req, res) => {
 
       await newUser.save();
 
-      // Log the new user in
       const payload = { user: { id: newUser.id } };
-      const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
-      res.json({ token: jwtToken, user: { name: newUser.name, email: newUser.email } });
+      const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, {
+        expiresIn: '5h',
+      });
+      return res.json({
+        token: jwtToken,
+        user: {
+          id: newUser._id,
+          name: newUser.name,
+          email: newUser.email,
+          role: newUser.role,
+        },
+      });
     }
   } catch (err) {
     console.error(err);
@@ -190,11 +230,13 @@ app.post('/api/auth/google', async (req, res) => {
   }
 });
 
+// ================== USERS (ADMIN) ==================
+
 // Lấy danh sách user cho trang Admin
-app.get('/api/users', async (req, res) => {
+app.get('/api/users', auth, adminOnly, async (req, res) => {
   try {
     const users = await User.find()
-      .select('-password')   // không trả password
+      .select('-password')
       .sort({ createdAt: -1 });
 
     res.json(users);
@@ -204,9 +246,8 @@ app.get('/api/users', async (req, res) => {
   }
 });
 
-
 // Cập nhật thông tin user (tên, email, role, status)
-app.put('/api/users/:id', async (req, res) => {
+app.put('/api/users/:id', auth, adminOnly, async (req, res) => {
   try {
     const { name, email, role, status } = req.body;
 
@@ -228,7 +269,7 @@ app.put('/api/users/:id', async (req, res) => {
 });
 
 // Xóa user khỏi database
-app.delete('/api/users/:id', async (req, res) => {
+app.delete('/api/users/:id', auth, adminOnly, async (req, res) => {
   try {
     const deleted = await User.findByIdAndDelete(req.params.id);
     if (!deleted) {
@@ -241,24 +282,27 @@ app.delete('/api/users/:id', async (req, res) => {
   }
 });
 
-// Lấy danh sách mã giảm giá
-app.get("/api/promotions", async (req, res) => {
+// ================== PROMOTIONS ==================
+
+// Lấy danh sách mã giảm giá (admin dùng, nhưng có thể public)
+app.get('/api/promotions', async (req, res) => {
   try {
     const promos = await Promotion.find().sort({ createdAt: -1 });
     res.json(promos);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 });
 
-app.post("/api/promotions", async (req, res) => {
+// Thêm promotion (admin)
+app.post('/api/promotions', auth, adminOnly, async (req, res) => {
   try {
     const { code, desc, type, value, qty, start, end, status } = req.body;
 
     const exists = await Promotion.findOne({ code });
     if (exists) {
-      return res.status(400).json({ msg: "Mã giảm giá đã tồn tại" });
+      return res.status(400).json({ msg: 'Mã giảm giá đã tồn tại' });
     }
 
     const promo = new Promotion({
@@ -267,20 +311,21 @@ app.post("/api/promotions", async (req, res) => {
       type,
       value,
       qty,
-      start: new Date(start),   // client gửi dạng 'YYYY-MM-DDTHH:mm'
-      end:   new Date(end),
-      status: status || "active",
+      start: new Date(start),
+      end: new Date(end),
+      status: status || 'active',
     });
 
     const saved = await promo.save();
     res.status(201).json(saved);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 });
 
-app.put("/api/promotions/:id", async (req, res) => {
+// Cập nhật promotion (admin)
+app.put('/api/promotions/:id', auth, adminOnly, async (req, res) => {
   try {
     const { code, desc, type, value, qty, start, end, status } = req.body;
 
@@ -293,40 +338,43 @@ app.put("/api/promotions/:id", async (req, res) => {
         value,
         qty,
         start: new Date(start),
-        end:   new Date(end),
+        end: new Date(end),
         status,
       },
       { new: true }
     );
 
     if (!updated) {
-      return res.status(404).json({ msg: "Promotion không tồn tại" });
+      return res.status(404).json({ msg: 'Promotion không tồn tại' });
     }
 
     res.json(updated);
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 });
 
-app.delete("/api/promotions/:id", async (req, res) => {
+// Xóa promotion (admin)
+app.delete('/api/promotions/:id', auth, adminOnly, async (req, res) => {
   try {
     const deleted = await Promotion.findByIdAndDelete(req.params.id);
     if (!deleted) {
-      return res.status(404).json({ msg: "Promotion không tồn tại" });
+      return res.status(404).json({ msg: 'Promotion không tồn tại' });
     }
-    res.json({ msg: "Đã xóa promotion" });
+    res.json({ msg: 'Đã xóa promotion' });
   } catch (err) {
     console.error(err.message);
-    res.status(500).send("Server error");
+    res.status(500).send('Server error');
   }
 });
 
-// Lấy danh sách categories
+// ================== CATEGORIES ==================
+
+// Lấy danh sách categories (public)
 app.get('/api/categories', async (req, res) => {
   try {
-    const cats = await Category.find().sort({ name: 1 });
+    const cats = await Category.find().sort({ categoryName: 1 });
     res.json(cats);
   } catch (err) {
     console.error(err.message);
@@ -334,8 +382,8 @@ app.get('/api/categories', async (req, res) => {
   }
 });
 
-// (tuỳ chọn) Thêm category – có thể gọi 1–2 lần cho tiện seed
-app.post('/api/categories', async (req, res) => {
+// Thêm category (admin)
+app.post('/api/categories', auth, adminOnly, async (req, res) => {
   try {
     const { categoryName, slug } = req.body;
     const existed = await Category.findOne({ slug });
@@ -350,7 +398,9 @@ app.post('/api/categories', async (req, res) => {
   }
 });
 
-// Lấy danh sách sản phẩm
+// ================== PRODUCTS ==================
+
+// Lấy danh sách sản phẩm (public)
 app.get('/api/products', async (req, res) => {
   try {
     const products = await Product.find().sort({ createdAt: -1 });
@@ -361,8 +411,8 @@ app.get('/api/products', async (req, res) => {
   }
 });
 
-// Thêm sản phẩm
-app.post('/api/products', async (req, res) => {
+// Thêm sản phẩm (admin)
+app.post('/api/products', auth, adminOnly, async (req, res) => {
   try {
     const {
       code,
@@ -403,8 +453,8 @@ app.post('/api/products', async (req, res) => {
   }
 });
 
-// Cập nhật sản phẩm
-app.put('/api/products/:id', async (req, res) => {
+// Cập nhật sản phẩm (admin)
+app.put('/api/products/:id', auth, adminOnly, async (req, res) => {
   try {
     const {
       code,
@@ -447,8 +497,8 @@ app.put('/api/products/:id', async (req, res) => {
   }
 });
 
-// Xoá sản phẩm
-app.delete('/api/products/:id', async (req, res) => {
+// Xoá sản phẩm (admin)
+app.delete('/api/products/:id', auth, adminOnly, async (req, res) => {
   try {
     const deleted = await Product.findByIdAndDelete(req.params.id);
     if (!deleted) {
@@ -460,7 +510,6 @@ app.delete('/api/products/:id', async (req, res) => {
     res.status(500).send('Server error');
   }
 });
-
 
 // --- Start the server ---
 const PORT = process.env.PORT || 5000;

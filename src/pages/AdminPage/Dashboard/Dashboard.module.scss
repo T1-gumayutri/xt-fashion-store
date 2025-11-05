@@ -4,13 +4,13 @@
   gap: 24px;
   padding: 24px;
   background: #f8fafc;
-  min-height: calc(100vh - 64px); /* trừ chiều cao topbar */
+  min-height: calc(100vh - 64px); 
 }
 
 h2 {
   font-size: 28px;
   font-weight: 700;
-  color: #0f172a; /* đồng bộ với AdminSidebar brandText */
+  color: #0f172a; 
   margin: 0 0 20px 0;
 }
 
@@ -18,7 +18,7 @@ h3 {
   font-size: 18px;
   font-weight: 600;
   margin: 0 0 12px 0;
-  color: #0f172a; /* đồng bộ */
+  color: #0f172a; 
 }
 
 /* KPI cards */
@@ -29,10 +29,10 @@ h3 {
 }
 
 .card {
-  background: #ffffff; /* giống AdminTopbar & Sidebar */
-  border-radius: 12px; /* đồng bộ với AdminSidebar item */
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06); /* nhẹ hơn */
-  border: 1px solid #eef2f7; /* border giống AdminSidebar */
+  background: #ffffff; 
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid #eef2f7; 
   padding: 20px;
   display: flex;
   flex-direction: column;
@@ -43,7 +43,7 @@ h3 {
 .card:hover {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: #dbe3ff; /* hover tương tự AdminSidebar active */
+  border-color: #dbe3ff; 
 }
 
 /* Biểu đồ + bảng chia đôi */
@@ -67,11 +67,11 @@ h3 {
 
 .table th {
   text-align: left;
-  background: #f8fafc; /* background nhẹ hơn */
+  background: #f8fafc; 
   font-weight: 600;
   padding: 12px 16px;
-  color: #334155; /* đồng bộ với AdminSidebar item */
-  border-bottom: 1px solid #eef2f7; /* border giống topbar */
+  color: #334155; 
+  border-bottom: 1px solid #eef2f7; 
   font-size: 13px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -89,7 +89,7 @@ h3 {
 }
 
 .table tbody tr:hover {
-  background: #f1f5ff; /* giống AdminSidebar item hover */
+  background: #f1f5ff; 
 }
 
 /* Màu số tăng giảm */
@@ -98,7 +98,7 @@ h3 {
   font-weight: 600;
 }
 .negative {
-  color: #ef4444; /* giống AdminTopbar dot */
+  color: #ef4444; 
   font-weight: 600;
 }
 
@@ -106,7 +106,7 @@ h3 {
 .subTitle {
   font-size: 13px;
   font-weight: 500;
-  color: #64748b; /* màu xám nhẹ hơn */
+  color: #64748b; 
 }
 
 /* Animation khi load */

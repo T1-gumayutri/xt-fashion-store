@@ -8,8 +8,8 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  width: calc(100% - 260px); /* trừ đi width của sidebar */
-  margin-left: 80px; /* đẩy sang phải để không bị sidebar che */
+  width: calc(100% - 260px); 
+  margin-left: 80px; 
 }
 
 .content {

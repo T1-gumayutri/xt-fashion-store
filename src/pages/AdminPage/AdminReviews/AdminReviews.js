@@ -19,7 +19,7 @@ const MOCK_REVIEWS = [
     rating: 5,
     content: "Chất vải đẹp, form chuẩn, giao hàng nhanh.",
     createdAt: "2025-06-01 10:15",
-    status: "approved", // approved | pending | hidden
+    status: "approved",
   },
   {
     id: 2,
@@ -57,19 +57,19 @@ export default function AdminReviews() {
   const [rows, setRows] = useState(MOCK_REVIEWS);
 
   const [query, setQuery] = useState("");
-  const [ratingFilter, setRatingFilter] = useState("all"); // all | 1..5
-  const [statusFilter, setStatusFilter] = useState("all"); // all | approved | pending | hidden
+  const [ratingFilter, setRatingFilter] = useState("all"); 
+  const [statusFilter, setStatusFilter] = useState("all"); 
   const [from, setFrom] = useState("");
   const [to, setTo] = useState("");
 
-  const [sortKey, setSortKey] = useState("createdAt"); // createdAt | rating
+  const [sortKey, setSortKey] = useState("createdAt"); 
   const [sortDir, setSortDir] = useState("desc");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
 
   // modal state
-  const [viewing, setViewing] = useState(null);      // object review đang xem
-  const [editing, setEditing] = useState(null);      // object review đang sửa
+  const [viewing, setViewing] = useState(null);      
+  const [editing, setEditing] = useState(null);      
   const [editStatus, setEditStatus] = useState("approved");
 
   const filtered = useMemo(() => {

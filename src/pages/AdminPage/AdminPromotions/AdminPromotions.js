@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import styles from "./AdminPromotions.module.scss";
 import { FiPlus, FiEdit2, FiTrash2, FiX } from "react-icons/fi";
 import axios from "axios";
+import { useAuth } from "../../../contexts/AuthContext"; 
 
 const API_BASE = "http://localhost:5000/api";
 
@@ -49,6 +50,8 @@ export default function AdminPromotions() {
   });
   const [errors, setErrors] = useState({});
 
+   const { token } = useAuth(); 
+
   // 🔹 map doc từ backend -> row cho bảng
   const mapPromo = (p) => ({
     id: p._id,
@@ -69,7 +72,11 @@ export default function AdminPromotions() {
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get(`${API_BASE}/promotions`);
+        const res = await axios.get(`${API_BASE}/promotions`, {
+          headers: {
+            Authorization: `Bearer ${token}`,   
+          },
+        });
         const promos = (res.data || []).map(mapPromo);
         setRows(promos);
       } catch (err) {
@@ -80,7 +87,7 @@ export default function AdminPromotions() {
       }
     };
     fetchPromos();
-  }, []);
+  }, [token]);
 
   const filtered = useMemo(() => {
     let data = [...rows];
@@ -179,6 +186,7 @@ export default function AdminPromotions() {
   // 🔹 lưu: nếu có editingId -> PUT, ngược lại -> POST
   const handleSave = async () => {
     if (!validate()) return;
+    if (!token) return;  
     setSaving(true);
 
     const payload = {
@@ -196,14 +204,23 @@ export default function AdminPromotions() {
       if (editingId) {
         const res = await axios.put(
           `${API_BASE}/promotions/${editingId}`,
-          payload
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,   
+            },
+          }
         );
         const updated = mapPromo(res.data);
         setRows((prev) =>
           prev.map((r) => (r.id === editingId ? updated : r))
         );
       } else {
-        const res = await axios.post(`${API_BASE}/promotions`, payload);
+        const res = await axios.post(`${API_BASE}/promotions`, payload, {
+          headers: {
+            Authorization: `Bearer ${token}`,     
+          },
+        });
         const created = mapPromo(res.data);
         setRows((prev) => [created, ...prev]);
         setPage(1);
@@ -244,7 +261,11 @@ export default function AdminPromotions() {
   const deletePromo = async (id) => {
     if (!window.confirm("Xóa mã giảm giá này?")) return;
     try {
-      await axios.delete(`${API_BASE}/promotions/${id}`);
+      await axios.delete(`${API_BASE}/promotions/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,       
+        },
+      });
       setRows((prev) => prev.filter((x) => x.id !== id));
     } catch (err) {
       console.error(err);

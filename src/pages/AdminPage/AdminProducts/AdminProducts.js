@@ -1,4 +1,3 @@
-// src/pages/AdminPage/AdminProducts/AdminProducts.js
 import React, { useState, useMemo, useEffect } from "react";
 import axios from "axios";
 import styles from "./AdminProducts.module.scss";
@@ -10,12 +9,13 @@ import {
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
+import { useAuth } from "../../../contexts/AuthContext"; 
 
 const API_BASE = "http://localhost:5000/api";
 
 export default function AdminProducts() {
-  const [rows, setRows] = useState([]);            // danh sách sản phẩm
-  const [categories, setCategories] = useState([]); // danh sách category từ DB
+  const [rows, setRows] = useState([]);            
+  const [categories, setCategories] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -29,10 +29,12 @@ export default function AdminProducts() {
   const PAGE_SIZE = 5;
 
   // modal thêm / sửa
-  const [modalProduct, setModalProduct] = useState(null); // object sản phẩm đang thao tác
-  const [modalMode, setModalMode] = useState(null);       // 'add' | 'edit'
+  const [modalProduct, setModalProduct] = useState(null); 
+  const [modalMode, setModalMode] = useState(null);      
 
   const statuses = ["all", "active", "out"];
+
+  const { token } = useAuth();  
 
   // Hàm map document DB -> object dùng trong UI
   const mapProduct = (p) => ({
@@ -57,8 +59,16 @@ export default function AdminProducts() {
         setLoading(true);
         setError("");
         const [prodRes, catRes] = await Promise.all([
-          axios.get(`${API_BASE}/products`),
-          axios.get(`${API_BASE}/categories`),
+          axios.get(`${API_BASE}/products`, {
+            headers: {
+              Authorization: `Bearer ${token || ""}`,     
+            },
+          }),
+          axios.get(`${API_BASE}/categories`, {
+            headers: {
+              Authorization: `Bearer ${token || ""}`,     
+            },
+          }),
         ]);
 
         setRows(prodRes.data.map(mapProduct));
@@ -72,7 +82,7 @@ export default function AdminProducts() {
     };
 
     fetchData();
-  }, []);
+  }, [token]);
 
   // Danh sách tên category để filter / chọn trong modal
   const categoryOptions = useMemo(
@@ -168,7 +178,11 @@ export default function AdminProducts() {
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc muốn xóa sản phẩm này?")) return;
     try {
-      await axios.delete(`${API_BASE}/products/${id}`);
+      await axios.delete(`${API_BASE}/products/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,        
+        },
+      });
       setRows((prev) => prev.filter((r) => r.id !== id));
     } catch (err) {
       console.error(err);
@@ -195,14 +209,23 @@ export default function AdminProducts() {
 
     try {
       if (modalMode === "add") {
-        const res = await axios.post(`${API_BASE}/products`, payload);
+        const res = await axios.post(`${API_BASE}/products`, payload, {
+          headers: {
+            Authorization: `Bearer ${token}`,       
+          },
+        });
         const created = mapProduct(res.data);
         setRows((prev) => [created, ...prev]);
         setPage(1);
       } else if (modalMode === "edit") {
         const res = await axios.put(
           `${API_BASE}/products/${modalProduct.id}`,
-          payload
+          payload,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,      
+            },
+          }
         );
         const updated = mapProduct(res.data);
         setRows((prev) =>

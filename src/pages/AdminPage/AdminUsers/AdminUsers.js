@@ -8,6 +8,7 @@ import {
   FiChevronRight,
 } from "react-icons/fi";
 import axios from "axios";
+import { useAuth } from "../../../contexts/AuthContext";  
 
 const PAGE_SIZE = 6;
 const API_BASE = "http://localhost:5000/api";
@@ -26,16 +27,24 @@ export default function AdminUsers() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
+  const { token } = useAuth();               
+
   // ✅ LẤY DỮ LIỆU TỪ MONGODB
   useEffect(() => {
     const fetchUsers = async () => {
+      if (!token) return; 
+
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get(`${API_BASE}/users`);
+        const res = await axios.get(`${API_BASE}/users`, {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        });
         const users = (res.data || []).map((u) => ({
           ...u,
-          id: u._id,                       
+          id: u._id,
           role: u.role || "user",
           status: u.status || "active",
           createdAt: u.createdAt || "",
@@ -50,7 +59,7 @@ export default function AdminUsers() {
     };
 
     fetchUsers();
-  }, []);
+  }, [token]);   
 
   const roles = useMemo(() => {
     const set = new Set(rows.map((r) => r.role || "user"));
@@ -135,7 +144,12 @@ export default function AdminUsers() {
       };
       const res = await axios.put(
         `${API_BASE}/users/${editingUser.id}`,
-        payload
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
       const updated = res.data;
 
@@ -156,15 +170,19 @@ export default function AdminUsers() {
   };
 
   const handleDelete = async (id) => {
-  if (!window.confirm("Bạn có chắc muốn xóa người dùng này?")) return;
-  try {
-    await axios.delete(`${API_BASE}/users/${id}`);
-    setRows((prev) => prev.filter((r) => r.id !== id));
-    alert("Đã xóa người dùng thành công!");
-  } catch (err) {
-    console.error(err);
-    alert("Lỗi khi xóa người dùng!");
-  }
+    if (!window.confirm("Bạn có chắc muốn xóa người dùng này?")) return;
+    try {
+      await axios.delete(`${API_BASE}/users/${id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,     
+        },
+      });
+      setRows((prev) => prev.filter((r) => r.id !== id));
+      alert("Đã xóa người dùng thành công!");
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi khi xóa người dùng!");
+    }
   };
 
   return (

@@ -80,7 +80,14 @@ function App() {
           <Route path="/khuyen-mai" element={<PromotionsPage />} /> 
           <Route path="/search" element={<SearchResultsPage />} /> 
 
-          {/* 🧭 Admin nested routes */}
+
+          {/* --- CÁC ROUTE CẦN BẢO VỆ (PHẢI ĐĂNG NHẬP) --- */}
+          <Route element={<ProtectedRoute />}>
+            <Route path="/checkout" element={<CheckoutPage />} />
+            <Route path="/profile" element={<ProfilePage />} />
+            <Route path="/order-success" element={<OrderSuccessPage />} />
+
+            {/* 🧭 Admin nested routes */}
                   <Route path="/admin" element={<AdminPage />}>
                     <Route index element={<Dashboard />} />
                     <Route path="users" element={<AdminUsers />} />
@@ -89,13 +96,6 @@ function App() {
                     <Route path="promotions" element={<AdminPromotions />} />
                     <Route path="reviews" element={<AdminReviews />} />
                   </Route>
-
-          {/* --- CÁC ROUTE CẦN BẢO VỆ (PHẢI ĐĂNG NHẬP) --- */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/checkout" element={<CheckoutPage />} />
-            <Route path="/profile" element={<ProfilePage />} />
-            <Route path="/order-success" element={<OrderSuccessPage />} />
-            {/* Thêm các route cần đăng nhập khác vào đây sau này */}
           </Route>
           
         </Routes>
@@ -104,7 +104,7 @@ function App() {
     </WishlistProvider>
     </CartProvider>
     </AuthProvider>
-     </GoogleOAuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 

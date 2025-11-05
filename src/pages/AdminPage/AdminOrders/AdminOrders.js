@@ -14,9 +14,9 @@ const MOCK_ORDERS = [
     orderCode: "#18",
     customer: "John Doe",
     receiver: "Quoc Ta",
-    method: "cod",                 // cod | vnpay | momo
-    payStatus: "unpaid",           // unpaid | refund | failed | paid
-    orderStatus: "confirmed",      // confirmed | canceled
+    method: "cod",                 
+    payStatus: "unpaid",           
+    orderStatus: "confirmed",      
     createdAt: "2025-06-07 11:23",
     updatedAt: "2025-06-07 11:24",
     total: 1105000000,
@@ -71,8 +71,8 @@ export default function AdminOrders() {
   const [orderStatus, setOrderStatus] = useState("all");
 
   // sort + paging
-  const [sortKey, setSortKey] = useState("createdAt"); // createdAt | updatedAt | total
-  const [sortDir, setSortDir] = useState("desc");      // asc | desc
+  const [sortKey, setSortKey] = useState("createdAt"); 
+  const [sortDir, setSortDir] = useState("desc");      
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
 
@@ -304,13 +304,13 @@ export default function AdminOrders() {
                   <td>
                     {badge(
                       payText(r.payStatus),
-                      r.payStatus // classes: unpaid | refund | failed | paid
+                      r.payStatus 
                     )}
                   </td>
                   <td>
                     {badge(
                       orderText(r.orderStatus),
-                      r.orderStatus // classes: confirmed | canceled
+                      r.orderStatus 
                     )}
                   </td>
                   <td>{r.createdAt}</td>
