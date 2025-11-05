@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import styles from "./AdminUsers.module.scss";
 import {
   FiSearch,
@@ -7,35 +7,53 @@ import {
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
+import axios from "axios";
 
-const MOCK_USERS = [
-  { id: 1,  name: "John Doe",        email: "john@example.com",     role: "admin",   status: "active",  createdAt: "2025-08-12" },
-  { id: 2,  name: "Nguyễn Văn A",    email: "a@ptit.edu.vn",        role: "user",    status: "active",  createdAt: "2025-07-30" },
-  { id: 3,  name: "Trần B",          email: "tranb@gmail.com",      role: "user",    status: "blocked", createdAt: "2025-04-21" },
-  { id: 4,  name: "Lê C",            email: "le.c@company.com",     role: "user",    status: "active",  createdAt: "2025-06-10" },
-  { id: 5,  name: "Phạm D",          email: "pham.d@domain.com",    role: "user",    status: "active",  createdAt: "2025-06-15" },
-  { id: 6,  name: "Jane Smith",      email: "jane@shop.vn",         role: "manager", status: "active",  createdAt: "2025-05-04" },
-  { id: 7,  name: "Alex",            email: "alex@host.com",        role: "user",    status: "active",  createdAt: "2025-03-19" },
-  { id: 8,  name: "Chris Evans",     email: "cevans@mail.com",      role: "user",    status: "blocked", createdAt: "2025-02-09" },
-  { id: 9,  name: "Emma Watson",     email: "emma@brand.net",       role: "user",    status: "active",  createdAt: "2025-09-01" },
-  { id: 10, name: "Bruce Wayne",     email: "bruce@wayneenterp.io", role: "admin",   status: "active",  createdAt: "2025-01-12" },
-];
+const PAGE_SIZE = 6;
+const API_BASE = "http://localhost:5000/api";
 
 export default function AdminUsers() {
-  const [rows, setRows] = useState(MOCK_USERS);
+  const [rows, setRows] = useState([]);
   const [query, setQuery] = useState("");
   const [roleFilter, setRoleFilter] = useState("all");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortKey, setSortKey] = useState("createdAt");
   const [sortDir, setSortDir] = useState("desc");
   const [page, setPage] = useState(1);
-  const PAGE_SIZE = 6;
 
-  // state cho modal sửa
   const [editingUser, setEditingUser] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  // ✅ LẤY DỮ LIỆU TỪ MONGODB
+  useEffect(() => {
+    const fetchUsers = async () => {
+      try {
+        setLoading(true);
+        setError("");
+        const res = await axios.get(`${API_BASE}/users`);
+        const users = (res.data || []).map((u) => ({
+          ...u,
+          id: u._id,                       
+          role: u.role || "user",
+          status: u.status || "active",
+          createdAt: u.createdAt || "",
+        }));
+        setRows(users);
+      } catch (err) {
+        console.error(err);
+        setError("Không tải được danh sách người dùng");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchUsers();
+  }, []);
 
   const roles = useMemo(() => {
-    const set = new Set(rows.map((r) => r.role));
+    const set = new Set(rows.map((r) => r.role || "user"));
     return ["all", ...Array.from(set)];
   }, [rows]);
 
@@ -48,8 +66,8 @@ export default function AdminUsers() {
       const q = query.toLowerCase();
       data = data.filter(
         (r) =>
-          r.name.toLowerCase().includes(q) ||
-          r.email.toLowerCase().includes(q)
+          r.name?.toLowerCase().includes(q) ||
+          r.email?.toLowerCase().includes(q)
       );
     }
 
@@ -66,11 +84,11 @@ export default function AdminUsers() {
       let vb = b[sortKey];
 
       if (sortKey === "createdAt") {
-        va = new Date(va).getTime();
-        vb = new Date(vb).getTime();
+        va = va ? new Date(va).getTime() : 0;
+        vb = vb ? new Date(vb).getTime() : 0;
       } else {
-        va = String(va).toLowerCase();
-        vb = String(vb).toLowerCase();
+        va = String(va ?? "").toLowerCase();
+        vb = String(vb ?? "").toLowerCase();
       }
 
       if (va < vb) return sortDir === "asc" ? -1 : 1;
@@ -96,26 +114,57 @@ export default function AdminUsers() {
     }
   };
 
-  // mở modal, set user đang sửa
   const handleEdit = (id) => {
     const user = rows.find((u) => u.id === id);
     if (user) {
-      setEditingUser({ ...user }); // copy để sửa
+      setEditingUser({ ...user });
     }
   };
 
-  // lưu dữ liệu từ modal
-  const handleSaveEdit = () => {
+  // ✅ GỌI API CẬP NHẬT USER (kể cả ROLE)
+  const handleSaveEdit = async () => {
     if (!editingUser) return;
-    setRows((prev) =>
-      prev.map((u) => (u.id === editingUser.id ? editingUser : u))
-    );
-    setEditingUser(null);
+    try {
+      setSaving(true);
+      setError("");
+      const payload = {
+        name: editingUser.name,
+        email: editingUser.email,
+        role: editingUser.role,
+        status: editingUser.status,
+      };
+      const res = await axios.put(
+        `${API_BASE}/users/${editingUser.id}`,
+        payload
+      );
+      const updated = res.data;
+
+      setRows((prev) =>
+        prev.map((u) =>
+          u.id === editingUser.id
+            ? { ...u, ...updated, id: updated._id || editingUser.id }
+            : u
+        )
+      );
+      setEditingUser(null);
+    } catch (err) {
+      console.error(err);
+      setError("Không lưu được thay đổi người dùng");
+    } finally {
+      setSaving(false);
+    }
   };
 
-  const handleDelete = (id) => {
-    if (!window.confirm("Xóa người dùng này?")) return;
+  const handleDelete = async (id) => {
+  if (!window.confirm("Bạn có chắc muốn xóa người dùng này?")) return;
+  try {
+    await axios.delete(`${API_BASE}/users/${id}`);
     setRows((prev) => prev.filter((r) => r.id !== id));
+    alert("Đã xóa người dùng thành công!");
+  } catch (err) {
+    console.error(err);
+    alert("Lỗi khi xóa người dùng!");
+  }
   };
 
   return (
@@ -174,82 +223,99 @@ export default function AdminUsers() {
         </div>
       </div>
 
+      {loading && (
+        <div className={styles.message}>Đang tải danh sách người dùng...</div>
+      )}
+      {error && <div className={styles.error}>{error}</div>}
+
       {/* Table */}
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th onClick={() => onChangeSort("name")}>Tên</th>
-            <th onClick={() => onChangeSort("email")}>Email</th>
-            <th>Role</th>
-            <th>Trạng thái</th>
-            <th onClick={() => onChangeSort("createdAt")}>Ngày tạo</th>
-            <th style={{ width: 120, textAlign: "right" }}>Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {paginated.length === 0 ? (
+      {!loading && (
+        <table className={styles.table}>
+          <thead>
             <tr>
-              <td
-                colSpan={6}
-                style={{ textAlign: "center", padding: 24, color: "#6b7280" }}
-              >
-                Không có dữ liệu
-              </td>
+              <th onClick={() => onChangeSort("name")}>Tên</th>
+              <th onClick={() => onChangeSort("email")}>Email</th>
+              <th>Role</th>
+              <th>Trạng thái</th>
+              <th onClick={() => onChangeSort("createdAt")}>Ngày tạo</th>
+              <th style={{ width: 120, textAlign: "right" }}>Hành động</th>
             </tr>
-          ) : (
-            paginated.map((r) => (
-              <tr key={r.id}>
-                <td>{r.name}</td>
-                <td>{r.email}</td>
-                <td>
-                  <span className={styles.badge}>{r.role}</span>
-                </td>
-                <td>
-                  <span className={styles.badge}>{r.status}</span>
-                </td>
-                <td>{r.createdAt}</td>
-                <td style={{ textAlign: "right" }}>
-                  <button
-                    className={styles.actionBtn}
-                    onClick={() => handleEdit(r.id)}
-                    title="Sửa"
-                  >
-                    <FiEdit2 />
-                  </button>
-                  <button
-                    className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                    onClick={() => handleDelete(r.id)}
-                    title="Xóa"
-                  >
-                    <FiTrash2 />
-                  </button>
+          </thead>
+          <tbody>
+            {paginated.length === 0 ? (
+              <tr>
+                <td
+                  colSpan={6}
+                  style={{
+                    textAlign: "center",
+                    padding: 24,
+                    color: "#6b7280",
+                  }}
+                >
+                  Không có dữ liệu
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
+            ) : (
+              paginated.map((r) => (
+                <tr key={r.id}>
+                  <td>{r.name}</td>
+                  <td>{r.email}</td>
+                  <td>
+                    <span className={styles.badge}>{r.role}</span>
+                  </td>
+                  <td>
+                    <span className={styles.badge}>{r.status}</span>
+                  </td>
+                  <td>
+                    {r.createdAt
+                      ? new Date(r.createdAt).toLocaleString("vi-VN")
+                      : "N/A"}
+                  </td>
+                  <td style={{ textAlign: "right" }}>
+                    <button
+                      className={styles.actionBtn}
+                      onClick={() => handleEdit(r.id)}
+                      title="Sửa"
+                    >
+                      <FiEdit2 />
+                    </button>
+                    <button
+                      className={`${styles.actionBtn} ${styles.deleteBtn}`}
+                      onClick={() => handleDelete(r.id)}
+                      title="Xóa"
+                    >
+                      <FiTrash2 />
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      )}
 
       {/* Pagination */}
-      <div className={styles.pagination}>
-        <button
-          className={styles.pageBtn}
-          disabled={page === 1}
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-        >
-          <FiChevronLeft />
-        </button>
-        <div className={styles.pageInfo}>
-          Trang {page} / {totalPages}
+      {!loading && (
+        <div className={styles.pagination}>
+          <button
+            className={styles.pageBtn}
+            disabled={page === 1}
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+          >
+            <FiChevronLeft />
+          </button>
+          <div className={styles.pageInfo}>
+            Trang {page} / {totalPages}
+          </div>
+          <button
+            className={styles.pageBtn}
+            disabled={page === totalPages}
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+          >
+            <FiChevronRight />
+          </button>
         </div>
-        <button
-          className={styles.pageBtn}
-          disabled={page === totalPages}
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-        >
-          <FiChevronRight />
-        </button>
-      </div>
+      )}
 
       {/* Modal chỉnh sửa User */}
       {editingUser && (
@@ -330,7 +396,15 @@ export default function AdminUsers() {
 
               <div className={styles.field}>
                 <label>Ngày tạo</label>
-                <input type="text" value={editingUser.createdAt} disabled />
+                <input
+                  type="text"
+                  value={
+                    editingUser.createdAt
+                      ? new Date(editingUser.createdAt).toLocaleString("vi-VN")
+                      : "N/A"
+                  }
+                  disabled
+                />
               </div>
             </div>
 
@@ -339,6 +413,7 @@ export default function AdminUsers() {
                 type="button"
                 className={styles.cancelBtn}
                 onClick={() => setEditingUser(null)}
+                disabled={saving}
               >
                 Hủy
               </button>
@@ -346,8 +421,9 @@ export default function AdminUsers() {
                 type="button"
                 className={styles.saveBtn}
                 onClick={handleSaveEdit}
+                disabled={saving}
               >
-                Lưu
+                {saving ? "Đang lưu..." : "Lưu"}
               </button>
             </div>
           </div>
