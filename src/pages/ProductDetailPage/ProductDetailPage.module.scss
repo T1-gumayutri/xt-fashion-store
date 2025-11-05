@@ -268,9 +268,192 @@
   }
 }
 
+/* --- CẬP NHẬT PHẦN MÔ TẢ --- */
 .description {
-  margin-top: 20px;
+  margin-top: 30px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 30px;
 }
+
+/* --- BỔ SUNG STYLE CÒN THIẾU --- */
+.descriptionTitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+.descriptionContent {
+  font-size: 0.95rem;
+  line-height: 1.7;
+  color: #444;
+
+  p { margin-bottom: 15px; }
+  ul, ol { padding-left: 20px; margin-bottom: 15px; }
+}
+/* --------------------------------- */
+
+
+/* --- STYLE CHO PHẦN ĐÁNH GIÁ --- */
+.reviewsSection {
+  margin-top: 30px;
+  border-top: 1px solid #f0f0f0;
+  padding-top: 30px;
+}
+
+.reviewsTitle {
+  font-size: 1.25rem;
+  font-weight: 500;
+  margin-bottom: 20px;
+  color: #333;
+}
+
+.reviewSummary {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 15px;
+}
+
+.starRating {
+  display: flex;
+  gap: 2px;
+  color: #fadb14; // Màu vàng cho sao
+}
+
+.reviewCount {
+  font-size: 0.9rem;
+  color: #666;
+  padding-top: 2px;
+}
+
+.noReviews {
+  font-size: 0.95rem;
+  color: #666;
+  margin-bottom: 15px;
+}
+
+.writeReviewButton {
+  background: none;
+  border: 1px solid #222;
+  color: #222;
+  padding: 10px 15px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  margin-bottom: 20px;
+
+  &:hover {
+    background: #222;
+    color: #fff;
+  }
+}
+
+.reviewForm {
+  border: 1px solid #eee;
+  padding: 20px;
+  border-radius: 4px;
+  margin-bottom: 30px;
+  background: #fafafa;
+
+  label {
+    display: block;
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-size: 0.9rem;
+    color: #333;
+  }
+
+  textarea {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    resize: vertical;
+    margin-bottom: 15px;
+    box-sizing: border-box; // Thêm để padding không làm vỡ layout
+  }
+}
+
+.starRatingInput {
+  font-size: 1.5rem;
+  color: #fadb14;
+  margin-bottom: 20px;
+  cursor: pointer;
+
+  span {
+    margin-right: 5px;
+    transition: transform 0.1s ease;
+    display: inline-block; // Cho phép transform
+
+    &:hover {
+      transform: scale(1.2);
+    }
+  }
+}
+
+.submitReviewButton {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  padding: 12px 20px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background: #0056b3;
+  }
+}
+
+.reviewList {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+
+.reviewItem {
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 20px;
+
+  &:last-child {
+    border-bottom: none;
+  }
+}
+
+.reviewHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+  flex-wrap: wrap; // Cho responsive
+
+  strong {
+    font-size: 1rem;
+    color: #222;
+  }
+}
+
+.reviewDate {
+  font-size: 0.85rem;
+  color: #999;
+}
+
+.reviewComment {
+  font-size: 0.95rem;
+  color: #444;
+  line-height: 1.6;
+  margin-top: 10px;
+  word-wrap: break-word; // Tránh vỡ layout
+}
+/* ---------------------------------- */
+
 
 .notFound {
   text-align: center;
@@ -287,6 +470,36 @@
     border-radius: 4px;
   }
 }
+
+/* --- THÊM STYLE CHO SẢN PHẨM LIÊN QUAN --- */
+.relatedProductsSection {
+  max-width: 1100px;
+  margin: 60px auto 50px auto; // Thêm khoảng cách với phần trên và dưới
+  padding: 0 15px;
+  border-top: 1px solid #f0f0f0; // Phân tách rõ ràng
+  padding-top: 50px;
+}
+
+.relatedProductsTitle {
+  font-size: 1.75rem;
+  font-weight: 500;
+  color: #222;
+  text-align: center;
+  margin-bottom: 40px;
+}
+
+.relatedProductsGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr); // 4 cột
+  gap: 25px;
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(2, 1fr); // 2 cột trên tablet
+    gap: 20px;
+  }
+}
+/* --------------------------------------- */
+
 
 // Responsive adjustments for smaller screens
 @media (max-width: 768px) {
@@ -311,5 +524,13 @@
   .mainImageWrapper {
     width: 100%;
     padding-bottom: 125%;
+  }
+
+  // CẬP NHẬT GRID SẢN PHẨM LIÊN QUAN CHO MOBILE NHỎ HƠN
+  .relatedProductsGrid {
+    @media (max-width: 576px) {
+      grid-template-columns: repeat(2, 1fr); // 2 cột trên mobile
+      gap: 15px;
+    }
   }
 }

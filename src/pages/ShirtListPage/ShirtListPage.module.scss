@@ -1,5 +1,4 @@
-/* PantsListPage.module.scss */
-/* (Nội dung giống hệt ShirtListPage.module.scss) */
+/* ShirtListPage.module.scss */
 
 .container {
     max-width: 1280px;
@@ -11,7 +10,7 @@
     display: flex;
     flex-wrap: wrap; 
     justify-content: space-between; 
-    align-items: flex-start; 
+    align-items: flex-start; // Đổi thành flex-start để các <h4> canh đều
     gap: 20px; 
     margin-bottom: 20px;
     padding: 15px;
@@ -21,6 +20,7 @@
     border-radius: 8px;
 }
 
+/* Bộ lọc giá (giữ nguyên) */
 .filterContainer {
     width: 280px; 
     
@@ -29,18 +29,22 @@
     h4 { margin-top: 0; margin-bottom: 10px; font-size: 1rem; }
 }
 
+/* === CSS MỚI === */
+/* 1. Bộ lọc màu */
 .colorFilterContainer {
-    width: 280px; 
+    width: 280px; // Đặt chiều rộng
 }
 
+/* 2. Gom số lượng và sắp xếp lại */
 .controlsContainer {
     display: flex;
     flex-direction: column;
-    align-items: flex-end; 
+    align-items: flex-end; // Đẩy sang phải
     gap: 15px;
-    margin-left: auto; 
+    margin-left: auto; // Đẩy nhóm này sang cuối
     flex-shrink: 0;
 }
+/* ================= */
 
 .productCount {
     font-size: 0.9rem;
@@ -89,7 +93,7 @@
         grid-template-columns: repeat(3, 1fr);
     }
     .filterContainer, .colorFilterContainer {
-        width: 240px;
+        width: 240px; // Thu nhỏ bộ lọc một chút
     }
 }
 
@@ -108,7 +112,7 @@
         width: 100%;
         max-width: 400px;
         margin-left: 0;
-        align-items: center;
+        align-items: center; // Canh giữa trên di động
     }
 }
 

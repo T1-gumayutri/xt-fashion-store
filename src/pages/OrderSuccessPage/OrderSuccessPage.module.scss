@@ -1,0 +1,169 @@
+.successContainer {
+  max-width: 800px;
+  margin: 60px auto;
+  padding: 40px;
+  text-align: center;
+  background-color: #fff;
+  border-radius: 8px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.successIcon {
+  font-size: 4rem;
+  color: #28a745;
+  margin-bottom: 20px;
+}
+
+h1 {
+  font-size: 2rem;
+  margin-bottom: 15px;
+}
+
+p {
+  font-size: 1.1rem;
+  color: #555;
+  line-height: 1.6;
+  margin-bottom: 10px;
+}
+
+.orderDetails {
+  margin: 30px 0;
+  text-align: left;
+}
+
+.orderIdText {
+  text-align: center;
+  font-size: 1.1rem;
+  margin-bottom: 20px;
+  
+  span {
+    font-weight: 700;
+    color: #c92127;
+    margin-left: 8px;
+    font-size: 1.2rem;
+    background-color: #fef4f4;
+    padding: 3px 8px;
+    border-radius: 4px;
+  }
+}
+
+// --- STYLE MỚI CHO BOX THÔNG TIN KH ---
+.customerInfoBox {
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  padding: 20px;
+  margin-bottom: 20px;
+  p {
+    font-size: 1rem;
+    color: #333;
+    margin-bottom: 8px;
+    &:last-child {
+      margin-bottom: 0;
+    }
+  }
+}
+// ------------------------------------
+
+// --- STYLE MỚI CHO TÓM TẮT SẢN PHẨM ---
+.summaryItems {
+  max-height: 250px;
+  overflow-y: auto;
+  margin-bottom: 20px;
+  padding-right: 10px;
+  border-top: 1px solid #eee;
+  border-bottom: 1px solid #eee;
+  padding-top: 20px;
+  padding-bottom: 10px;
+}
+
+.summaryItem {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 15px;
+
+  img {
+    width: 50px;
+    height: 65px;
+    object-fit: cover;
+    border-radius: 4px;
+  }
+
+  .itemInfo {
+    flex-grow: 1;
+    font-size: 0.9rem;
+    p { margin: 0 0 5px; font-weight: 500; font-size: 0.95rem; }
+    span { color: #888; display: block; }
+  }
+
+  .itemPrice {
+    font-weight: 500;
+    font-size: 0.95rem;
+  }
+}
+// ------------------------------------
+
+// --- STYLE MỚI CHO TÍNH TOÁN ---
+.calculation {
+  padding: 20px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+}
+
+.calcRow, .calcTotal {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 10px;
+  font-size: 1rem;
+}
+
+.discountRow {
+  color: #c92127;
+  font-weight: 500;
+}
+
+.calcTotal {
+  font-size: 1.2rem;
+  font-weight: 700;
+  margin-top: 15px;
+  padding-top: 15px;
+  border-top: 1px solid #ddd;
+}
+
+.totalPrice {
+  color: #c92127;
+}
+// ---------------------------------
+
+// --- STYLE MỚI CHO CÁC NÚT BẤM ---
+.continueButton, .trackOrderButton {
+  display: inline-block;
+  padding: 12px 30px;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-decoration: none;
+  margin-top: 20px;
+  transition: background-color 0.3s ease;
+  margin-right: 10px;
+}
+
+.continueButton {
+  background-color: #c92127;
+  color: #fff;
+  &:hover {
+    background-color: #a11a20;
+  }
+}
+
+.trackOrderButton {
+  background-color: #f1f1f1;
+  color: #333;
+  border: 1px solid #ddd;
+  &:hover {
+    background-color: #e9e9e9;
+  }
+}
+// ---------------------------------

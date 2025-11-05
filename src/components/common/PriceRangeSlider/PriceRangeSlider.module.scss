@@ -1,0 +1,37 @@
+/* PriceRangeSlider.module.scss */
+.priceSliderContainer {
+  margin-bottom: 24px;
+  padding: 0 5px; // Thêm padding để handle không bị cắt
+}
+
+.priceLabels {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #333;
+}
+
+/* Ghi đè CSS global của rc-slider */
+/* Bạn có thể đổi màu #007bff thành màu chủ đạo của web bạn */
+.priceSlider :global(.rc-slider-track) {
+  background-color: #007bff;
+}
+
+.priceSlider :global(.rc-slider-handle) {
+  border-color: #007bff;
+  opacity: 1;
+  background-color: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.priceSlider :global(.rc-slider-handle:hover),
+.priceSlider :global(.rc-slider-handle:active),
+.priceSlider :global(.rc-slider-handle:focus) {
+  box-shadow: 0 0 0 5px rgba(0, 123, 255, 0.1);
+}
+
+.priceSlider :global(.rc-slider-rail) {
+  background-color: #e9ecef;
+}

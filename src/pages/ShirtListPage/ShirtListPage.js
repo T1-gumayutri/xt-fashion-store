@@ -1,8 +1,8 @@
 import React, { useState, useMemo } from 'react';
 import PageLayout from '../../components/layout/PageLayout/PageLayout';
 import ProductCard from '../../components/product/ProductCard/ProductCard';
-import styles from './PantsListPage.module.scss';
-import { pantProducts } from '../../data/mockData'; //
+import styles from './ShirtListPage.module.scss';
+import { shirtProducts } from '../../data/mockData'; //
 
 // --- Imports MỚI ---
 import PriceRangeSlider from '../../components/common/PriceRangeSlider/PriceRangeSlider';
@@ -23,19 +23,20 @@ const getUniqueColors = (products) => {
 };
 // ---------------------------------------------
 
-// --- Tính toán giá trị Min/Max/Colors (dùng pantProducts) ---
-const prices = pantProducts.map(p => p.price); //
+// --- Tính toán giá trị Min/Max/Colors ---
+const prices = shirtProducts.map(p => p.price); //
 const MIN_PRICE = prices.length > 0 ? Math.min(...prices) : 0;
 const MAX_PRICE = prices.length > 0 ? Math.max(...prices) : 1000000;
-const AVAILABLE_COLORS = getUniqueColors(pantProducts);
-// -----------------------------------------------------------
+// Chỉ gọi hàm 1 lần
+const AVAILABLE_COLORS = getUniqueColors(shirtProducts);
+// -----------------------------------------
 
-const PantsListPage = () => {
+const ShirtListPage = () => {
     const [sortOrder, setSortOrder] = useState('default');
     
     // --- State cho bộ lọc ---
     const [priceFilter, setPriceFilter] = useState([MIN_PRICE, MAX_PRICE]);
-    const [colorFilter, setColorFilter] = useState([]); // State MỚI
+    const [colorFilter, setColorFilter] = useState([]); // State MỚI (mảng các màu)
 
     // --- Hàm callback cho bộ lọc ---
     const handlePriceFilterChange = (newValue) => {
@@ -47,7 +48,7 @@ const PantsListPage = () => {
 
     // --- Cập nhật logic lọc và sắp xếp ---
     const sortedProducts = useMemo(() => {
-        let products = [...pantProducts]; //
+        let products = [...shirtProducts]; //
 
         // 1. Lọc theo giá
         products = products.filter(
@@ -58,6 +59,8 @@ const PantsListPage = () => {
         // 2. Lọc theo màu (MỚI)
         if (colorFilter.length > 0) {
             products = products.filter(product =>
+                // Kiểm tra xem bất kỳ màu nào trong 'inventory' của sản phẩm
+                // có nằm trong mảng 'colorFilter' hay không
                 product.inventory.some(item => colorFilter.includes(item.color)) //
             );
         }
@@ -80,10 +83,10 @@ const PantsListPage = () => {
                 break;
         }
         return products;
-    }, [sortOrder, priceFilter, colorFilter]); // Thêm 'colorFilter'
+    }, [sortOrder, priceFilter, colorFilter]); // Thêm 'colorFilter' vào dependency
 
     return (
-        <PageLayout pageTitle="Quần">
+        <PageLayout pageTitle="Áo xuân hè">
             <div className={styles.container}>
                 <div className={styles.toolbar}>
                     
@@ -104,7 +107,7 @@ const PantsListPage = () => {
                         />
                     </div>
 
-                    {/* 3. Số lượng sản phẩm & Sắp xếp */}
+                    {/* 3. Số lượng sản phẩm & Sắp xếp (gom vào 1 div) */}
                     <div className={styles.controlsContainer}>
                         <div className={styles.productCount}>
                             Hiển thị {sortedProducts.length} sản phẩm
@@ -127,12 +130,14 @@ const PantsListPage = () => {
                     </div>
                 </div>
 
+                {/* Lưới sản phẩm */}
                 <div className={styles.productGrid}>
                     {sortedProducts.map((product) => (
                         <ProductCard key={product.id} product={product} />
                     ))}
                 </div>
 
+                {/* Thông báo khi không có sản phẩm */}
                 {sortedProducts.length === 0 && (
                     <div className={styles.noResults}>
                         <p>Không tìm thấy sản phẩm nào phù hợp.</p>
@@ -143,4 +148,4 @@ const PantsListPage = () => {
     );
 };
 
-export default PantsListPage;
+export default ShirtListPage;

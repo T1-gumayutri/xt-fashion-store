@@ -1,52 +1,119 @@
-// Nội dung file src/pages/PantsListPage/PantsListPage.module.scss
-// (Sao chép từ ProductListPage.module.scss)
+/* AccessoriesListPage.module.scss */
+/* (Nội dung giống hệt ShirtListPage.module.scss) */
 
 .container {
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 15px;
-}
-
-.productGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-
-  @media (max-width: 992px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @media (max-width: 576px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
+    max-width: 1280px;
+    margin: 20px auto;
+    padding: 0 15px;
 }
 
 .toolbar {
-  display: flex;
-  justify-content: flex-end;
-  margin-bottom: 25px;
+    display: flex;
+    flex-wrap: wrap; 
+    justify-content: space-between; 
+    align-items: flex-start; 
+    gap: 20px; 
+    margin-bottom: 20px;
+    padding: 15px;
+    border-bottom: 1px solid #eee;
+    background-color: #fdfdfd;
+    border: 1px solid #f0f0f0;
+    border-radius: 8px;
+}
+
+.filterContainer {
+    width: 280px; 
+    
+    :global(.priceSliderContainer) { margin-bottom: 0; }
+    :global(.priceLabels) { margin-bottom: 8px; font-size: 0.9rem; }
+    h4 { margin-top: 0; margin-bottom: 10px; font-size: 1rem; }
+}
+
+.colorFilterContainer {
+    width: 280px; 
+}
+
+.controlsContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end; 
+    gap: 15px;
+    margin-left: auto; 
+    flex-shrink: 0;
+}
+
+.productCount {
+    font-size: 0.9rem;
+    color: #555;
+    flex-shrink: 0; 
+    text-align: right;
 }
 
 .sortOptions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0; 
+}
 
-  label {
-    font-size: 0.95rem;
-  }
-
-  .sortSelect {
+.sortSelect {
     padding: 8px 12px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
     background-color: #fff;
-    font-size: 0.9rem;
     cursor: pointer;
+}
 
-    &:focus {
-      outline: none;
-      border-color: #333;
+.productGrid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr); 
+    gap: 20px;
+}
+
+.noResults {
+    text-align: center;
+    padding: 40px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    margin-top: 20px;
+    
+    p {
+        font-size: 1.1rem;
+        color: #777;
     }
-  }
+}
+
+/* === Responsive === */
+@media (max-width: 992px) {
+    .productGrid {
+        grid-template-columns: repeat(3, 1fr);
+    }
+    .filterContainer, .colorFilterContainer {
+        width: 240px;
+    }
+}
+
+@media (max-width: 768px) {
+    .productGrid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    .toolbar {
+        justify-content: center; 
+    }
+    .filterContainer, .colorFilterContainer {
+        width: 100%; 
+        max-width: 400px;
+    }
+    .controlsContainer {
+        width: 100%;
+        max-width: 400px;
+        margin-left: 0;
+        align-items: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .productGrid {
+        grid-template-columns: 1fr;
+    }
 }

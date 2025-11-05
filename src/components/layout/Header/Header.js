@@ -70,7 +70,11 @@ const Header = () => {
         <div className={styles.userActions}>
           {user ? (
             <>
-              <span className={styles.welcomeMessage}>Xin chào, {user.name}</span>
+              {/* --- THAY ĐỔI Ở ĐÂY: Bọc tên người dùng bằng Link --- */}
+              <Link to="/profile" className={styles.welcomeMessage}>
+                Xin chào, {user.name}
+              </Link>
+              {/* ----------------------------------------------- */}
               <span>|</span>
               <button onClick={handleLogout} className={styles.logoutButton}>
                 Đăng xuất
