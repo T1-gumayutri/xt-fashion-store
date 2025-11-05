@@ -3,6 +3,13 @@ const express = require('express');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const usersRouter = require('./routes/userRoutes');
+const categoriesRouter = require('./routes/categoryRoutes');
+const cartsRouter = require('./routes/cartRoutes');
+const productsRouter = require('./routes/productRoutes');
+const ordersRouter = require('./routes/orderRoutes');
+const newsRouter = require('./routes/newsRoutes');
+const messagesRouter = require('./routes/messageRoutes');
+const analyticsRouter = require('./routes/analyticsRoutes');
 
 const app = express();
 app.use(cors());
@@ -13,9 +20,15 @@ connectDB();
 
 // Routes
 app.use('/api/users', usersRouter);
-// app.use('/api/products', require('./routes/productRoutes'));
-// app.use('/api/categories', require('./routes/categoryRoutes'));
-// app.use('/api/carts', require('./routes/cartRoutes'));
+app.use('/api/products', productsRouter);
+app.use('/api/categories', categoriesRouter);
+app.use('/api/carts', cartsRouter);
+app.use('/api/orders', ordersRouter);
+app.use('/api/news', newsRouter);
+app.use('/api/messages', messagesRouter);
+app.use('/api/analytics', analyticsRouter);
+
+
 // app.use('/api/orders', require('./routes/orderRoutes'));
 // app.use('/api/promotions', require('./routes/promotionRoutes'));
 // app.use('/api/news', require('./routes/newsRoutes'));

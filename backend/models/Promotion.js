@@ -71,7 +71,7 @@ const PromotionSchema = new Schema(
   }
 );
 
-PromotionSchema.index({ code: 1 }, { unique: true });
+// PromotionSchema.index({ code: 1 }, { unique: true });
 
 PromotionSchema.index({ isActive: 1, startDate: 1, endDate: 1 });
 

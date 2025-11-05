@@ -23,7 +23,7 @@ const CategorySchema = new Schema({
   }
 }, { timestamps: true });
 
-CategorySchema.index({ categoryName: 1 }, { unique: true });
+// CategorySchema.index({ categoryName: 1 }, { unique: true });
 
 CategorySchema.set('toJSON', {
   virtuals: true,
