@@ -229,7 +229,7 @@ export default function AdminProducts() {
 
   return (
     <div className={styles.adminProducts}>
-      <h2>Products</h2>
+      <h2>Quản lý sản phẩm</h2>
 
       {/* Thông báo lỗi / loading */}
       {error && <div className={styles.error}>{error}</div>}
@@ -289,13 +289,14 @@ export default function AdminProducts() {
       <table className={styles.table}>
         <thead>
           <tr>
+            <th style={{ width: 60 }}>STT</th>
             <th onClick={() => handleSort("name")}>Sản phẩm</th>
             <th onClick={() => handleSort("category")}>Danh mục</th>
             <th onClick={() => handleSort("price")}>Giá</th>
             <th onClick={() => handleSort("stock")}>Tồn kho</th>
             <th onClick={() => handleSort("status")}>Trạng thái</th>
             <th onClick={() => handleSort("createdAt")}>Ngày thêm</th>
-            <th style={{ width: 120, textAlign: "right" }}>Hành động</th>
+            <th style={{ width: 150, textAlign: "right" }}>Hành động</th>
           </tr>
         </thead>
         <tbody>
@@ -318,17 +319,24 @@ export default function AdminProducts() {
               </td>
             </tr>
           ) : (
-            paginated.map((r) => (
+            paginated.map((r, index) => (
               <tr key={r.id}>
                 <td>
-                  <div>{r.name}</div>
-                  <div className={styles.subCode}>Mã: {r.code}</div>
+                {(page - 1) * PAGE_SIZE + index + 1}
                 </td>
                 <td>
-                  {r.category}
-                  {r.subCategory && (
-                    <div className={styles.subCode}>Nhóm: {r.subCategory}</div>
-                  )}
+                  <div className={styles.productCell}>
+                    <span className={styles.productName}>{r.name}</span>
+                    <span className={styles.productId}>Mã: {r.code}</span>
+                  </div>
+                </td>
+                <td>
+                  <div className={styles.productCell}>
+                    <span className={styles.productName}>{r.category}</span>
+                    {r.subCategory && (
+                      <span className={styles.productId}>Nhóm: {r.subCategory}</span>
+                    )}
+                  </div>
                 </td>
                 <td>{r.price.toLocaleString("vi-VN")}₫</td>
                 <td>{r.stock}</td>

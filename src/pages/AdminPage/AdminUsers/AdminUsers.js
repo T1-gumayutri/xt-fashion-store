@@ -169,7 +169,7 @@ export default function AdminUsers() {
 
   return (
     <div className={styles.adminUsers}>
-      <h2>Users</h2>
+      <h2>Quản lý người dùng</h2>
 
       {/* Toolbar */}
       <div className={styles.toolbar}>
@@ -233,6 +233,7 @@ export default function AdminUsers() {
         <table className={styles.table}>
           <thead>
             <tr>
+              <th>STT</th>
               <th onClick={() => onChangeSort("name")}>Tên</th>
               <th onClick={() => onChangeSort("email")}>Email</th>
               <th>Role</th>
@@ -256,8 +257,11 @@ export default function AdminUsers() {
                 </td>
               </tr>
             ) : (
-              paginated.map((r) => (
+              paginated.map((r, index) => (
                 <tr key={r.id}>
+                  <td>
+                {(page - 1) * PAGE_SIZE + index + 1}
+                </td>
                   <td>{r.name}</td>
                   <td>{r.email}</td>
                   <td>
