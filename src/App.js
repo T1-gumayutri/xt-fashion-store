@@ -25,6 +25,15 @@ import PromotionsPage from './pages/PromotionsPage/PromotionsPage';
 import CheckoutPage from './pages/CheckoutPage/CheckoutPage';
 import SearchResultsPage from './pages/SearchResultsPage/SearchResultsPage';
 
+// Admin (nested)
+import AdminPage from './pages/AdminPage/AdminPage';
+import Dashboard from './pages/AdminPage/Dashboard/Dashboard';
+import AdminProducts from './pages/AdminPage/AdminProducts/AdminProducts';
+import AdminOrders from './pages/AdminPage/AdminOrders/AdminOrders';
+import AdminUsers from './pages/AdminPage/AdminUsers/AdminUsers';
+import AdminPromotions from './pages/AdminPage/AdminPromotions/AdminPromotions';
+import AdminReviews from "./pages/AdminPage/AdminReviews/AdminReviews";
+
 // --- IMPORT MỚI CHO TRANG PROFILE ---
 import ProfilePage from './pages/ProfilePage/ProfilePage';
 import ProtectedRoute from './components/common/ProtectedRoute/ProtectedRoute';
@@ -71,12 +80,22 @@ function App() {
           <Route path="/khuyen-mai" element={<PromotionsPage />} /> 
           <Route path="/search" element={<SearchResultsPage />} /> 
 
+
           {/* --- CÁC ROUTE CẦN BẢO VỆ (PHẢI ĐĂNG NHẬP) --- */}
           <Route element={<ProtectedRoute />}>
             <Route path="/checkout" element={<CheckoutPage />} />
             <Route path="/profile" element={<ProfilePage />} />
             <Route path="/order-success" element={<OrderSuccessPage />} />
-            {/* Thêm các route cần đăng nhập khác vào đây sau này */}
+
+            {/* 🧭 Admin nested routes */}
+                  <Route path="/admin" element={<AdminPage />}>
+                    <Route index element={<Dashboard />} />
+                    <Route path="users" element={<AdminUsers />} />
+                    <Route path="products" element={<AdminProducts />} />
+                    <Route path="orders" element={<AdminOrders />} />
+                    <Route path="promotions" element={<AdminPromotions />} />
+                    <Route path="reviews" element={<AdminReviews />} />
+                  </Route>
           </Route>
           
         </Routes>
@@ -85,7 +104,7 @@ function App() {
     </WishlistProvider>
     </CartProvider>
     </AuthProvider>
-     </GoogleOAuthProvider>
+    </GoogleOAuthProvider>
   );
 }
 

@@ -16,36 +16,51 @@ const LoginForm = () => {
   const navigate = useNavigate();
 
   const handleLogin = async (e) => {
-    e.preventDefault();
-    setMessage('');
-    setLoading(true);
+  e.preventDefault();
+  setMessage('');
+  setLoading(true);
 
-    try {
-      const response = await authApi.login(email, password);
-      login(response.data.user, response.data.token);
-      navigate('/'); 
-    } catch (error) {
-      const errorMsg = error.response?.data?.msg || "Đã có lỗi xảy ra.";
-      setMessage(errorMsg);
-    } finally {
-      setLoading(false);
-    }
-  };
-  
-  const handleGoogleLoginSuccess = async (credentialResponse) => {
-    setLoading(true);
-    setMessage('');
-    try {
-      // Gửi token của Google về backend của bạn để xác thực
-      const response = await authApi.googleLogin(credentialResponse.credential);
-      login(response.data.user, response.data.token);
+  try {
+    const response = await authApi.login(email, password);
+    const { user, token } = response.data;
+
+    // lưu vào AuthContext + localStorage
+    login(user, token);
+
+    // Nếu là admin thì vào trang /admin, còn lại về /
+    if (user.role === 'admin') {
+      navigate('/admin');
+    } else {
       navigate('/');
-    } catch (error) {
-      setMessage("Đăng nhập Google thất bại. Vui lòng thử lại.");
-    } finally {
-      setLoading(false);
     }
-  };
+  } catch (error) {
+    const errorMsg = error.response?.data?.msg || "Đã có lỗi xảy ra.";
+    setMessage(errorMsg);
+  } finally {
+    setLoading(false);
+  }
+};
+
+  const handleGoogleLoginSuccess = async (credentialResponse) => {
+  setLoading(true);
+  setMessage('');
+  try {
+    const response = await authApi.googleLogin(credentialResponse.credential);
+    const { user, token } = response.data;
+
+    login(user, token);
+
+    if (user.role === 'admin') {
+      navigate('/admin');
+    } else {
+      navigate('/');
+    }
+  } catch (error) {
+    setMessage("Đăng nhập Google thất bại. Vui lòng thử lại.");
+  } finally {
+    setLoading(false);
+  }
+};
 
   const handleGoogleLoginError = () => {
     setMessage("Quá trình đăng nhập Google đã bị hủy.");
