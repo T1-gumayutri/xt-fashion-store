@@ -1,64 +1,100 @@
 const Category = require('../models/Category');
 
-// [GET] /api/categories
-exports.getAllCategories = async (req, res, next) => {
+// GET /api/categories
+exports.getAllCategories = async (req, res) => {
   try {
     const categories = await Category.find().sort({ createdAt: -1 });
     res.json(categories);
   } catch (err) {
-    next(err);
+    console.error(err.message);
+    res.status(500).json({ msg: 'Lỗi Server' });
   }
 };
 
-// [GET] /api/categories/:id
-exports.getCategoryById = async (req, res, next) => {
+// GET /api/categories/:id
+exports.getCategoryById = async (req, res) => {
   try {
     const category = await Category.findById(req.params.id);
-    if (!category) return res.status(404).json({ msg: 'Không tìm thấy danh mục' });
+    
+    if (!category) {
+      return res.status(404).json({ msg: 'Danh mục không tồn tại' });
+    }
+
     res.json(category);
   } catch (err) {
-    next(err);
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Danh mục không tồn tại' });
+    }
+    res.status(500).json({ msg: 'Lỗi Server' });
   }
 };
 
-// [POST] /api/categories (admin)
-exports.createCategory = async (req, res, next) => {
+// POST /api/categories --Admin--
+exports.createCategory = async (req, res) => {
   try {
-    const { categoryName, description, img, isDefault } = req.body;
+    const { name, description, img, isDefault } = req.body;
 
-    const existed = await Category.findOne({ categoryName });
-    if (existed) return res.status(400).json({ msg: 'Tên danh mục đã tồn tại' });
+    // Kiểm tra trùng tên
+    const categoryExists = await Category.findOne({ name });
+    if (categoryExists) {
+      return res.status(400).json({ msg: 'Tên danh mục này đã tồn tại' });
+    }
 
-    const category = await Category.create({ categoryName, description, img, isDefault });
-    res.status(201).json(category);
+    const newCategory = new Category({
+      name,
+      description,
+      img,
+      isDefault
+    });
+
+    await newCategory.save();
+
+    res.status(201).json(newCategory);
   } catch (err) {
-    next(err);
+    console.error(err.message);
+    res.status(500).json({ msg: 'Lỗi Server' });
   }
 };
 
-// [PUT] /api/categories/:id (admin)
-exports.updateCategory = async (req, res, next) => {
+
+// PUT /api/categories/:id --admin--
+exports.updateCategory = async (req, res) => {
   try {
-    const { categoryName, description, img, isDefault } = req.body;
-    const updated = await Category.findByIdAndUpdate(
-      req.params.id,
-      { $set: { categoryName, description, img, isDefault } },
-      { new: true }
-    );
-    if (!updated) return res.status(404).json({ msg: 'Không tìm thấy danh mục' });
-    res.json(updated);
+    const { name, description, img, isDefault } = req.body;
+
+    let category = await Category.findById(req.params.id);
+    if (!category) {
+      return res.status(404).json({ msg: 'Danh mục không tồn tại' });
+    }
+
+    if (name) category.name = name;
+    if (description) category.description = description;
+    if (img) category.img = img;
+    if (isDefault !== undefined) category.isDefault = isDefault;
+
+    await category.save();
+
+    res.json(category);
   } catch (err) {
-    next(err);
+    console.error(err.message);
+    res.status(500).json({ msg: 'Lỗi Server' });
   }
 };
 
-// [DELETE] /api/categories/:id (admin)
-exports.deleteCategory = async (req, res, next) => {
+// DELETE /api/categories/:id --admin--
+exports.deleteCategory = async (req, res) => {
   try {
-    const deleted = await Category.findByIdAndDelete(req.params.id);
-    if (!deleted) return res.status(404).json({ msg: 'Không tìm thấy danh mục' });
-    res.json({ msg: 'Xóa danh mục thành công' });
+    const category = await Category.findById(req.params.id);
+    if (!category) {
+      return res.status(404).json({ msg: 'Danh mục không tồn tại' });
+    }
+
+    await category.deleteOne();
+
+    res.json({ msg: 'Đã xóa danh mục thành công' });
   } catch (err) {
-    next(err);
+    console.error(err.message);
+    res.status(500).json({ msg: 'Lỗi Server' });
   }
 };

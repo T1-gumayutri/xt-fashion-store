@@ -16,11 +16,40 @@ export const CartProvider = ({ children }) => {
 
   useEffect(() => {
     localStorage.setItem('cart', JSON.stringify(cartItems));
-    // Tự động chọn tất cả sản phẩm khi giỏ hàng thay đổi
-    setSelectedItems(cartItems.map(item => `${item.id}-${item.color}-${item.size}`));
+    
+    // Cập nhật lại selectedItems để chỉ bao gồm những item còn trong giỏ hàng
+    // (Quan trọng khi clearCartItems được gọi)
+    setSelectedItems(prevSelected => {
+      const currentItemIds = cartItems.map(item => `${item.id}-${item.color}-${item.size}`);
+      return prevSelected.filter(id => currentItemIds.includes(id));
+    });
+
   }, [cartItems]);
+
+  // --- HÀM MỚI ĐỂ XÓA CÁC SẢN PHẨM ĐÃ CHỌN ---
+  const clearCartItems = (itemsToClear) => { // itemsToClear là mảng các ID đã chọn
+    setCartItems(prevItems => 
+      prevItems.filter(item => {
+        const itemIdentifier = `${item.id}-${item.color}-${item.size}`;
+        return !itemsToClear.includes(itemIdentifier);
+      })
+    );
+    // Sau khi xóa khỏi giỏ hàng, cũng xóa khỏi danh sách "đã chọn"
+    setSelectedItems(prevSelected => 
+      prevSelected.filter(id => !itemsToClear.includes(id))
+    );
+  };
+  // ---------------------------------------------
+
+
+  // Tự động chọn tất cả khi mới load
+  useEffect(() => {
+    setSelectedItems(cartItems.map(item => `${item.id}-${item.color}-${item.size}`));
+  }, []); // Chỉ chạy 1 lần khi load
+
   const openCart = () => setIsCartOpen(true);
   const closeCart = () => setIsCartOpen(false);
+
   const toggleSelectItem = (itemIdentifier) => {
     setSelectedItems(prevSelected => 
       prevSelected.includes(itemIdentifier)
@@ -31,7 +60,6 @@ export const CartProvider = ({ children }) => {
 
   const addToCart = (product, selectedColor, selectedSize, quantity) => {
     setCartItems(prevItems => {
-      // Kiểm tra xem sản phẩm với cùng màu và size đã có trong giỏ chưa
       const existingItem = prevItems.find(item => 
         item.id === product.id && 
         item.color === selectedColor.color && 
@@ -39,14 +67,16 @@ export const CartProvider = ({ children }) => {
       );
 
       if (existingItem) {
-        // Nếu đã có, chỉ cập nhật số lượng
         return prevItems.map(item =>
           item.id === product.id && item.color === selectedColor.color && item.size === selectedSize
             ? { ...item, quantity: item.quantity + quantity }
             : item
         );
       } else {
-        // Nếu chưa có, thêm mới vào giỏ hàng
+        // Khi thêm sản phẩm mới, tự động chọn nó
+        const newItemIdentifier = `${product.id}-${selectedColor.color}-${selectedSize}`;
+        setSelectedItems(prevSelected => [...prevSelected, newItemIdentifier]);
+        
         return [...prevItems, { 
           ...product, 
           color: selectedColor.color,
@@ -61,6 +91,9 @@ export const CartProvider = ({ children }) => {
     setCartItems(prevItems => prevItems.filter(item => 
       !(item.id === productId && item.color === color && item.size === size)
     ));
+    // Khi xóa, cũng bỏ chọn nó
+    const itemIdentifier = `${productId}-${color}-${size}`;
+    setSelectedItems(prevSelected => prevSelected.filter(id => id !== itemIdentifier));
   };
 
   const updateQuantity = (productId, color, size, amount) => {
@@ -78,11 +111,12 @@ export const CartProvider = ({ children }) => {
         addToCart, 
         removeFromCart, 
         updateQuantity,
-        isCartOpen, // <-- Thêm vào context
-        openCart,   // <-- Thêm vào context
-        closeCart,   // <-- Thêm vào context
-        selectedItems, // <-- Thêm
-        toggleSelectItem // <-- Thêm
+        isCartOpen,
+        openCart,   
+        closeCart,  
+        selectedItems,
+        toggleSelectItem,
+        clearCartItems // <-- Thêm hàm mới vào context
       }}
     >
       {children}

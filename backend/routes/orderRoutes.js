@@ -1,12 +1,23 @@
-const router = require('express').Router();
-const auth = require('../middleware/auth');
-const ctrl = require('../controllers/orderController');
+const express = require('express');
+const router = express.Router();
+const orderController = require('../controllers/orderController');
+const { authMiddleware, adminMiddleware } = require('../middleware/auth');
 
-router.post('/', auth, ctrl.createOrder);
-router.get('/mine', auth, ctrl.getMyOrders);
+// USER ROUTES
+// POST /api/orders
+router.post('/', authMiddleware, orderController.createOrder);
 
-// (nên bảo vệ admin)
-router.get('/', ctrl.getAllOrders);
-router.put('/:id/status', ctrl.updateStatus);
+// GET /api/orders/my-orders
+router.get('/my-orders', authMiddleware, orderController.getMyOrders);
+
+// GET /api/orders/:id
+router.get('/:id', authMiddleware, orderController.getOrderById);
+
+// ADMIN
+// GET /api/orders
+router.get('/', authMiddleware, adminMiddleware, orderController.getAllOrders);
+
+// PUT /api/orders/:id/status
+router.put('/:id/status', authMiddleware, adminMiddleware, orderController.updateOrderStatus);
 
 module.exports = router;

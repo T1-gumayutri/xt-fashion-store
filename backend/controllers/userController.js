@@ -1,16 +1,7 @@
-const bcrypt = require('bcryptjs');
-const jwt = require('jsonwebtoken');
-const { OAuth2Client } = require('google-auth-library');
-const { validationResult } = require('express-validator');
 const User = require('../models/User');
+const bcrypt = require('bcryptjs');
+const { validationResult } = require('express-validator');
 
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-
-// helper: tạo JWT
-const signToken = (userId) =>
-  jwt.sign({ user: { id: userId } }, process.env.JWT_SECRET, { expiresIn: '5h' });
-
-// helper: bắt lỗi validate
 const ensureValid = (req) => {
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -20,119 +11,31 @@ const ensureValid = (req) => {
   }
 };
 
-exports.register = async (req, res) => {
-  try {
-    const { name, email, phone, password } = req.body;
-
-    let user = await User.findOne({ email });
-    if (user) {
-      return res.status(400).json({ msg: 'Email đã tồn tại' });
-    }
-
-    user = new User({ name, email, phone, password });
-
-    const salt = await bcrypt.genSalt(10);
-    user.password = await bcrypt.hash(password, salt);
-
-    await user.save();
-
-    res.status(201).json({ msg: 'Đăng ký thành công!' });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
-
-exports.login = async (req, res) => {
-  try {
-    const { email, password } = req.body;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(400).json({ msg: 'Email hoặc mật khẩu không đúng' });
-    }
-
-    const isMatch = await bcrypt.compare(password, user.password);
-    if (!isMatch) {
-      return res.status(400).json({ msg: 'Email hoặc mật khẩu không đúng' });
-    }
-
-    const payload = { user: { id: user.id } };
-    jwt.sign(
-      payload,
-      process.env.JWT_SECRET,
-      { expiresIn: '5h' },
-      (err, token) => {
-        if (err) throw err;
-        res.json({ token, user: { name: user.name, email: user.email } });
-      }
-    );
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-};
-
-exports.googleLogin = async (req, res) => {
-  const { token } = req.body;
-  try {
-    const ticket = await client.verifyIdToken({
-        idToken: token,
-        audience: process.env.GOOGLE_CLIENT_ID,
-    });
-    const { name, email } = ticket.getPayload();
-
-    let user = await User.findOne({ email });
-
-    if (user) {
-      // User exists, log them in
-      const payload = { user: { id: user.id } };
-      const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
-      res.json({ token: jwtToken, user: { name: user.name, email: user.email } });
-    } else {
-      // User doesn't exist, create a new account
-      const randomPassword = Math.random().toString(36).slice(-8);
-      const salt = await bcrypt.genSalt(10);
-      const hashedPassword = await bcrypt.hash(randomPassword, salt);
-
-      const newUser = new User({
-        name: name,
-        email: email,
-        password: hashedPassword,
-        phone: 'N/A' 
-      });
-
-      await newUser.save();
-
-      // Log the new user in
-      const payload = { user: { id: newUser.id } };
-      const jwtToken = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '5h' });
-      res.json({ token: jwtToken, user: { name: newUser.name, email: newUser.email } });
-    }
-  } catch (err) {
-    console.error(err);
-    res.status(500).send('Server error');
-  }
-};
-
+//---Profile---
 // GET /api/users/me
 exports.getMe = async (req, res, next) => {
   try {
-    const me = await User.findById(req.user.id).select('-password');
-    res.json(me);
+    res.json(req.user); 
   } catch (e) { next(e); }
 };
 
 // PUT /api/users/me
 exports.updateMe = async (req, res, next) => {
   try {
-    const { fullname, phoneNumber } = req.body;
-    const updated = await User.findByIdAndUpdate(
-      req.user.id,
-      { $set: { fullname, phoneNumber } },
+    const { fullname, phoneNumber, address } = req.body; 
+    
+    const updateFields = {};
+    if (fullname) updateFields.fullname = fullname;
+    if (phoneNumber) updateFields.phoneNumber = phoneNumber;
+    if (address) updateFields.address = address;
+
+    const updatedUser = await User.findByIdAndUpdate(
+      req.user._id,
+      { $set: updateFields },
       { new: true }
-    ).select('-password');
-    res.json(updated);
+    );
+
+    res.json(updatedUser);
   } catch (e) { next(e); }
 };
 
@@ -142,22 +45,24 @@ exports.changePassword = async (req, res, next) => {
     ensureValid(req);
     const { currentPassword, newPassword } = req.body;
 
-    const user = await User.findById(req.user.id);
-    const ok = await bcrypt.compare(currentPassword, user.password);
-    if (!ok) return res.status(400).json({ msg: 'Mật khẩu hiện tại không đúng' });
+    const user = await User.findById(req.user._id).select('+password');
 
-    user.password = await bcrypt.hash(newPassword, 10);
+    const isMatch = await bcrypt.compare(currentPassword, user.password);
+    if (!isMatch) return res.status(400).json({ msg: 'Mật khẩu hiện tại không đúng' });
+
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(newPassword, salt);
     await user.save();
+
     res.json({ msg: 'Đổi mật khẩu thành công' });
   } catch (e) { next(e); }
 };
 
-// ==== Admin zone ====
-
+//---Admin---
 // GET /api/users
 exports.listUsers = async (req, res, next) => {
   try {
-    const users = await User.find().select('-password').sort('-createdAt');
+    const users = await User.find().sort({ createdAt: -1 });
     res.json(users);
   } catch (e) { next(e); }
 };
@@ -165,30 +70,40 @@ exports.listUsers = async (req, res, next) => {
 // GET /api/users/:id
 exports.getUserById = async (req, res, next) => {
   try {
-    const u = await User.findById(req.params.id).select('-password');
-    if (!u) return res.status(404).json({ msg: 'User không tồn tại' });
-    res.json(u);
+    const user = await User.findById(req.params.id);
+    if (!user) return res.status(404).json({ msg: 'User không tồn tại' });
+    res.json(user);
   } catch (e) { next(e); }
 };
 
-// PUT /api/users/:id
+// PUT /api/users/:id (Admin cập nhật User)
 exports.updateUserById = async (req, res, next) => {
   try {
-    const { fullname, phoneNumber, role } = req.body;
-    const u = await User.findByIdAndUpdate(
+    const { fullname, phoneNumber, role, isBlocked } = req.body;
+    const updateFields = {};
+
+    if (fullname) updateFields.fullname = fullname;
+    if (phoneNumber) updateFields.phoneNumber = phoneNumber;
+    if (role) updateFields.role = role;
+    if (isBlocked !== undefined) updateFields.isBlocked = isBlocked;
+
+    const updatedUser = await User.findByIdAndUpdate(
       req.params.id,
-      { $set: { fullname, phoneNumber, role } },
+      { $set: updateFields },
       { new: true }
-    ).select('-password');
-    if (!u) return res.status(404).json({ msg: 'User không tồn tại' });
-    res.json(u);
+    );
+
+    if (!updatedUser) return res.status(404).json({ msg: 'User không tồn tại' });
+    res.json(updatedUser);
   } catch (e) { next(e); }
 };
 
 // DELETE /api/users/:id
 exports.deleteUserById = async (req, res, next) => {
   try {
-    await User.findByIdAndDelete(req.params.id);
-    res.json({ ok: true });
+    const user = await User.findByIdAndDelete(req.params.id);
+    if (!user) return res.status(404).json({ msg: 'User không tồn tại' });
+    
+    res.json({ msg: 'Đã xóa người dùng thành công' });
   } catch (e) { next(e); }
 };

@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const crypto = require('crypto')
 const { Schema } = mongoose;
 
 const UserSchema = new Schema({
@@ -8,7 +9,6 @@ const UserSchema = new Schema({
     unique: true,
     trim: true,
     lowercase: true,
-    index: true
   },
   password: {
     type: String,
@@ -26,7 +26,13 @@ const UserSchema = new Schema({
     type: String,
     enum: ['user', 'admin'],
     default: 'user'
-  }
+  },
+  isBlocked: {
+    type: Boolean,
+    default: false
+  },
+  resetPasswordToken: String,
+  resetPasswordExpire: Date,
 }, {
   timestamps: true
 });
@@ -37,7 +43,21 @@ UserSchema.set('toJSON', {
   transform: (_, ret) => {
     delete ret._id;
     delete ret.password;
+    delete ret.resetPasswordToken; 
+    delete ret.resetPasswordExpire;
   }
 });
+
+UserSchema.methods.getResetPasswordToken = function () {
+  const resetToken = crypto.randomBytes(20).toString('hex');
+
+  this.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
+
+  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+  return resetToken;
+};
 
 module.exports = mongoose.model('User', UserSchema);

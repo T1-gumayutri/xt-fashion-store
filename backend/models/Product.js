@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 const { Schema } = mongoose;
 
 const ProductSchema = new Schema(
@@ -17,16 +18,24 @@ const ProductSchema = new Schema(
       index: 'text',
     },
 
+    slug: {
+      type: String,
+      unique: true,
+      index: true
+    },
+
     description: {
       type: String,
       default: '',
       trim: true,
     },
 
-    img: {
-      type: [String],
-      default: [],
-    },
+    img: [
+      {
+        url: { type: String, required: true },
+        public_id: { type: String, default: null }
+      }
+    ],
 
     price: {
       type: Number,
@@ -35,9 +44,17 @@ const ProductSchema = new Schema(
       index: true,
     },
 
+    variants: [
+      {
+        size: { type: String, required: true },
+        color: { type: String, required: true },
+        quantity: { type: Number, required: true, default: 0 },
+      }
+    ],
+
     inventory: {
       type: Number,
-      required: true,
+      default: 0,
       min: 0,
     },
 
@@ -51,6 +68,11 @@ const ProductSchema = new Schema(
       type: Boolean,
       default: false,
     },
+
+    isHidden: {
+        type: Boolean,
+        default: false
+    }
   },
   {
     timestamps: { createdAt: 'createAt', updatedAt: 'updateAt' },
@@ -58,6 +80,13 @@ const ProductSchema = new Schema(
 );
 
 ProductSchema.index({ productName: 'text', description: 'text' });
+
+ProductSchema.pre('save', function(next) {
+  if (this.isModified('productName')) {
+    this.slug = slugify(this.productName, { lower: true, locale: 'vi', remove: /[*+~.()'"!:@]/g });
+  }
+  next();
+});
 
 ProductSchema.set('toJSON', {
   virtuals: true,

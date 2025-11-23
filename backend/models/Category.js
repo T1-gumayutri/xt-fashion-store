@@ -1,12 +1,18 @@
 const mongoose = require('mongoose');
+const slugify = require('slugify');
 const { Schema } = mongoose;
 
 const CategorySchema = new Schema({
-  categoryName: {
+  name: {
     type: String,
     required: true,
     unique: true,
     trim: true
+  },
+  slug: {
+    type: String,
+    unique: true,
+    index: true
   },
   description: {
     type: String,
@@ -23,7 +29,12 @@ const CategorySchema = new Schema({
   }
 }, { timestamps: true });
 
-// CategorySchema.index({ categoryName: 1 }, { unique: true });
+CategorySchema.pre('save', function(next) {
+  if (this.isModified('name')) {
+    this.slug = slugify(this.name, { lower: true, locale: 'vi', remove: /[*+~.()'"!:@]/g });
+  }
+  next();
+});
 
 CategorySchema.set('toJSON', {
   virtuals: true,

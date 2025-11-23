@@ -1,13 +1,20 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
-// Schema con: từng item trong giỏ hàng
 const CartItemSchema = new Schema(
   {
     productId: {
       type: Schema.Types.ObjectId,
       ref: 'Product',
       required: true,
+    },
+    size: {
+      type: String,
+      required: true
+    },
+    color: {
+      type: String,
+      required: true
     },
     quantity: {
       type: Number,
@@ -19,7 +26,7 @@ const CartItemSchema = new Schema(
       },
     },
   },
-  { _id: true }
+  { _id: false }
 );
 
 // Schema chính: giỏ hàng
@@ -40,7 +47,7 @@ const CartSchema = new Schema(
   { timestamps: true }
 );
 
-CartSchema.virtual('totalItems').get(function () {
+CartSchema.virtual('totalLineItems').get(function () {
   return this.items.length;
 });
 
@@ -48,7 +55,6 @@ CartSchema.virtual('totalQuantity').get(function () {
   return this.items.reduce((sum, item) => sum + (item.quantity || 0), 0);
 });
 
-// 🔹 Cấu hình JSON output
 CartSchema.set('toJSON', {
   virtuals: true,
   versionKey: false,

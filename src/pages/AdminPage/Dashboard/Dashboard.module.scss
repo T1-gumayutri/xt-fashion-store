@@ -1,0 +1,142 @@
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 24px;
+  background: #f8fafc;
+  min-height: calc(100vh - 64px); 
+}
+
+h2 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #0f172a; 
+  margin: 0 0 20px 0;
+}
+
+h3 {
+  font-size: 18px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  color: #0f172a; 
+}
+
+/* KPI cards */
+.cardGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 16px;
+}
+
+.card {
+  background: #ffffff; 
+  border-radius: 12px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
+  border: 1px solid #eef2f7; 
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: all 0.2s ease-in-out;
+}
+
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+  border-color: #dbe3ff; 
+}
+
+/* Biểu đồ + bảng chia đôi */
+.section {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr;
+  gap: 20px;
+  @media (max-width: 1000px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Bảng top sản phẩm */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #ffffff;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+.table th {
+  text-align: left;
+  background: #f8fafc; 
+  font-weight: 600;
+  padding: 12px 16px;
+  color: #334155; 
+  border-bottom: 1px solid #eef2f7; 
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #eef2f7;
+  color: #334155;
+  font-size: 14px;
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.table tbody tr:hover {
+  background: #f1f5ff; 
+}
+
+/* Màu số tăng giảm */
+.positive {
+  color: #16a34a;
+  font-weight: 600;
+}
+.negative {
+  color: #ef4444; 
+  font-weight: 600;
+}
+
+/* Thanh tiêu đề nhỏ bên trên card */
+.subTitle {
+  font-size: 13px;
+  font-weight: 500;
+  color: #64748b; 
+}
+
+/* Animation khi load */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.card,
+.table {
+  animation: fadeIn 0.4s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .dashboard {
+    padding: 16px;
+  }
+
+  h2 {
+    font-size: 24px;
+  }
+
+  .cardGrid {
+    grid-template-columns: 1fr;
+  }
+}

@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL backend (localhost)
-const API_URL = 'http://localhost:5000/api/users';
+const API_URL = 'http://localhost:5000/api/auth';
 
 // Đăng ký tài khoản
 const register = (fullname, email, phoneNumber, password) => {
@@ -28,20 +28,22 @@ const googleLogin = (googleToken) => {
   });
 };
 
-// Lấy thông tin user hiện tại (khi đã có token)
-const getMe = (token) => {
-  return axios.get(`${API_URL}/me`, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+//Send request for reset passwd
+const forgotPassword = (email) => {
+  return axios.post(`${API_URL}/forgot-password`, { email });
+};
+
+//Reset passwd
+const resetPassword = (token, password) => {
+  return axios.put(`${API_URL}/resetpassword/${token}`, { password });
 };
 
 const authApi = {
   register,
   login,
   googleLogin,
-  getMe,
+  forgotPassword,
+  resetPassword,
 };
 
 export default authApi;

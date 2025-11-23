@@ -1,0 +1,162 @@
+/* Kế thừa style từ các form có sẵn để đồng bộ */
+@import '../../components/auth/LoginForm/LoginForm.module.scss'; 
+
+.profilePage {
+  display: flex;
+  max-width: 1200px;
+  margin: 2rem auto;
+  gap: 20px;
+  padding: 0 15px;
+}
+
+.sidebar {
+  flex: 0 0 280px;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px;
+  height: fit-content;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+  .welcome {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding-bottom: 20px;
+    border-bottom: 1px solid #eee;
+    margin-bottom: 10px;
+
+    svg {
+      margin-bottom: 8px;
+      color: #007bff;
+    }
+
+    span {
+      font-size: 0.9rem;
+      color: #666;
+    }
+
+    strong {
+      font-size: 1.1rem;
+      color: #333;
+    }
+  }
+
+  ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  li {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px 10px;
+    cursor: pointer;
+    border-radius: 6px;
+    transition: background-color 0.2s ease, color 0.2s ease;
+    color: #555;
+    font-weight: 500;
+
+    svg {
+      flex-shrink: 0;
+    }
+
+    &:hover {
+      background-color: #f4f8ff;
+      color: #0056b3;
+    }
+
+    &.active {
+      background-color: #eaf1ff;
+      color: #007bff;
+      font-weight: 600;
+    }
+
+    &.logout {
+      color: #d9534f;
+      &:hover {
+        background-color: #fdf0f0;
+        color: #d9534f;
+      }
+    }
+  }
+}
+
+.content {
+  flex: 1;
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 30px 40px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+
+  h2 {
+    margin-top: 0;
+    margin-bottom: 25px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid #f0f0f0;
+    color: #333;
+  }
+}
+
+.formContainer {
+  max-width: 500px;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+
+  label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    color: #444;
+  }
+  
+  .inputWithIcon {
+    position: relative;
+    
+    input {
+      /* --- SỬA LỖI TẠI ĐÂY --- */
+      /* Thay vì @extend, chúng ta copy style từ .inputGroup input */
+      width: 100%;
+      padding: 12px 12px 12px 40px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 1rem;
+      outline: none;
+      transition: border-color 0.3s ease;
+      &:focus { border-color: #007bff; }
+      /* ----------------------- */
+    }
+
+    svg {
+      position: absolute;
+      top: 50%;
+      left: 12px;
+      transform: translateY(-50%);
+      color: #999;
+    }
+
+    input:disabled {
+      background-color: #f5f5f5;
+      cursor: not-allowed;
+      color: #777;
+    }
+  }
+}
+
+.submitButton {
+  @extend .submitButton; // Kế thừa style nút submit (cái này OK vì .submitButton là class đơn)
+  width: auto;
+  padding: 12px 30px;
+}
+
+.placeholder {
+  color: #777;
+  font-style: italic;
+}

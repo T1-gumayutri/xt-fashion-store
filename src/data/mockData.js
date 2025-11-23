@@ -82,20 +82,33 @@ export const accessoryProducts = [
 export const promotions = [
   {
     code: 'XTFASHION15',
-    description: 'Giảm 15% cho đơn hàng từ 2000000 tối đa 500000.',
+    description: 'Giảm 15% cho đơn hàng từ 2.000.000đ tối đa 500.000đ.',
     expiry: 'Hết hạn: 31/12/2025',
-    quantity: 100, // Số lượng còn lại
+    quantity: 100,
+    // --- DỮ LIỆU LOGIC ĐÃ THÊM ---
+    type: 'percent',          // Loại: %
+    value: 15,                // Giá trị: 15%
+    minOrderValue: 2000000,   // Đơn tối thiểu: 2 triệu
+    maxValue: 500000          // Giảm tối đa: 500k
   },
   {
     code: 'FREESHIP',
     description: 'Miễn phí vận chuyển cho tất cả đơn hàng từ 500.000đ.',
     expiry: 'Hết hạn: 30/11/2025',
-    quantity: 100, // null nghĩa là không giới hạn
+    quantity: 100,
+    // --- DỮ LIỆU LOGIC ĐÃ THÊM ---
+    type: 'shipping',         // Loại: Vận chuyển
+    value: 'free',            // Giá trị: Miễn phí
+    minOrderValue: 500000     // Đơn tối thiểu: 500k
   },
   {
     code: 'SALE50K',
     description: 'Giảm ngay 50.000đ cho đơn hàng từ 1.000.000đ.',
     expiry: 'Hết hạn: 31/10/2025',
     quantity: 100,
+    // --- DỮ LIỆU LOGIC ĐÃ THÊM ---
+    type: 'fixed',            // Loại: Tiền cố định
+    value: 50000,             // Giá trị: 50.000đ
+    minOrderValue: 1000000    // Đơn tối thiểu: 1 triệu
   },
 ];

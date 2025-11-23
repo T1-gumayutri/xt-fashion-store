@@ -12,6 +12,22 @@ const OrderItemSchema = new Schema({
     required: true,
     min: 1
   },
+  size: {
+    type: String,
+    required: true,
+  },
+  color: {
+    type: String,
+    required: true
+  },
+  name: {
+    type: String,
+    required: true
+  },
+  image: {
+    type: String,
+    required: true
+  },
   price: {
     type: Number,
     required: true,
@@ -29,10 +45,8 @@ const ShippingInfoSchema = new Schema({
 }, { _id: false });
 
 const PromotionSchema = new Schema({
-  code:        { type: String, trim: true },
-  type:        { type: String, enum: ['percent','fixed'], default: 'percent' },
-  value:       { type: Number, min: 0 },
-  discount:    { type: Number, min: 0 }
+  code: { type: String, trim: true },
+  discountAmount: { type: Number, default: 0 } 
 }, { _id: false });
 
 const OrderSchema = new Schema({
@@ -41,6 +55,10 @@ const OrderSchema = new Schema({
     ref: 'User',
     required: true,
     index: true
+  },
+  orderCode: {
+    type: String,
+    unique: true
   },
   items: {
     type: [OrderItemSchema],
@@ -55,18 +73,26 @@ const OrderSchema = new Schema({
   },
   status: {
     type: String,
-    enum: ['pending','processing','shipped','delivered','cancelled'],
+    enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
   },
+  isPaid: {
+    type: Boolean,
+    required: true,
+    default: false
+  },
+  paidAt: {
+    type: Date
+  },
+  
   shippingInfo: {
     type: ShippingInfoSchema,
     required: true
   },
-  total: {
-    type: Number,
-    required: true,
-    min: 0
-  },
+  
+  itemsPrice: { type: Number, required: true, default: 0 },
+  shippingFee:{ type: Number, required: true, default: 0 },
+  total:      { type: Number, required: true, min: 0 },
   promotion: {
     type: PromotionSchema,
     default: null
