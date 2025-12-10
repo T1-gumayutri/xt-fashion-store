@@ -1,12 +1,13 @@
-/* Kế thừa style từ các form có sẵn để đồng bộ */
-@import '../../components/auth/LoginForm/LoginForm.module.scss'; 
-
 .profilePage {
   display: flex;
   max-width: 1200px;
   margin: 2rem auto;
   gap: 20px;
   padding: 0 15px;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 }
 
 .sidebar {
@@ -100,6 +101,10 @@
     border-bottom: 2px solid #f0f0f0;
     color: #333;
   }
+
+  @media (max-width: 768px) {
+    padding: 20px;
+  }
 }
 
 .formContainer {
@@ -121,8 +126,6 @@
     position: relative;
     
     input {
-      /* --- SỬA LỖI TẠI ĐÂY --- */
-      /* Thay vì @extend, chúng ta copy style từ .inputGroup input */
       width: 100%;
       padding: 12px 12px 12px 40px;
       border: 1px solid #ddd;
@@ -130,8 +133,10 @@
       font-size: 1rem;
       outline: none;
       transition: border-color 0.3s ease;
-      &:focus { border-color: #007bff; }
-      /* ----------------------- */
+
+      &:focus { 
+        border-color: #007bff; 
+      }
     }
 
     svg {
@@ -151,12 +156,189 @@
 }
 
 .submitButton {
-  @extend .submitButton; // Kế thừa style nút submit (cái này OK vì .submitButton là class đơn)
-  width: auto;
+  display: inline-block;
   padding: 12px 30px;
+  border-radius: 4px;
+  border: none;
+  background-color: #222;
+  color: #fff;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+
+  &:hover {
+    background-color: #444;
+    transform: translateY(-1px);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: default;
+  }
 }
 
-.placeholder {
-  color: #777;
-  font-style: italic;
+/* --- LỊCH SỬ ĐƠN HÀNG --- */
+.ordersContainer {
+  h2 { 
+    margin-bottom: 20px; 
+    font-size: 1.5rem; 
+  }
+}
+
+.orderList {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.orderCard {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 20px;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.orderHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #f0f0f0;
+  padding-bottom: 10px;
+  margin-bottom: 10px;
+}
+
+.orderId {
+  font-size: 1rem;
+  color: #555;
+
+  strong { 
+    color: #000; 
+  }
+}
+
+.status {
+  font-size: 0.85rem;
+  font-weight: 600;
+  padding: 4px 10px;
+  border-radius: 12px;
+  text-transform: capitalize;
+
+  &.pending { background: #fff3cd; color: #856404; }
+  &.processing { background: #cce5ff; color: #004085; }
+  &.shipped { background: #d4edda; color: #155724; }
+  &.delivered { background: #d4edda; color: #155724; }
+  &.cancelled { background: #f8d7da; color: #721c24; }
+}
+
+.orderBody {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 10px;
+}
+
+.orderInfo {
+  p { 
+    margin: 5px 0; 
+    color: #666; 
+    font-size: 0.95rem; 
+  }
+
+  .total { 
+    color: #d32f2f; 
+    font-weight: 700; 
+    font-size: 1.1rem; 
+  }
+}
+
+/* DANH SÁCH SẢN PHẨM TRONG ĐƠN */
+.orderItems {
+  margin-top: 10px;
+}
+
+.orderItem {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+
+.orderItemImage {
+  width: 45px;
+  height: 55px;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid #eee;
+}
+
+.orderItemInfo {
+  flex: 1;
+
+  p {
+    margin: 0 0 4px;
+    font-size: 0.95rem;
+    font-weight: 500;
+    color: #222;
+  }
+
+  span {
+    font-size: 0.85rem;
+    color: #777;
+  }
+}
+
+.orderItemPrice {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #d32f2f;
+}
+
+.moreItems {
+  margin-top: 4px;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+/* Nút thanh toán lại cho VNPAY */
+.payNowButton {
+  padding: 8px 16px;
+  background: #c92127;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: background 0.2s ease, transform 0.1s ease;
+
+  &:hover {
+    background: #a2181f;
+    transform: translateY(-1px);
+  }
+}
+
+/* Khi chưa có đơn */
+.emptyOrder {
+  text-align: center;
+  padding: 40px 0;
+
+  p { 
+    color: #888; 
+    margin-bottom: 15px; 
+  }
+
+  button {
+    padding: 10px 20px;
+    background: #000;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+  }
 }

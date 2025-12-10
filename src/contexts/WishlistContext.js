@@ -1,48 +1,62 @@
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useAuth } from './AuthContext';
-// import wishlistApi from '../api/wishlistApi'; // Chúng ta sẽ tạo file này sau
+import wishlistApi from '../api/wishlistApi';
 
 const WishlistContext = createContext();
 
 export const WishlistProvider = ({ children }) => {
   const [wishlist, setWishlist] = useState([]);
-  const { user, token } = useAuth();
-     const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+  const { token } = useAuth();
+  const [isWishlistOpen, setIsWishlistOpen] = useState(false);
+
   useEffect(() => {
-    // Khi người dùng đăng nhập, lấy danh sách yêu thích của họ từ backend
     const fetchWishlist = async () => {
-      if (user) {
-        // const response = await wishlistApi.getWishlist(token);
-        // setWishlist(response.data);
-        console.log("Fetching wishlist for user...");
+      if (token) {
+        try {
+          const response = await wishlistApi.getWishlist(token);
+          setWishlist(response.data);
+        } catch (error) {
+          console.error("Lỗi tải wishlist:", error);
+        }
       } else {
-        // Nếu đăng xuất, xóa danh sách yêu thích
         setWishlist([]);
       }
     };
     fetchWishlist();
-  }, [user, token]);
+  }, [token]);
 
+  //Thêm vào yêu thích
   const addToWishlist = async (product) => {
-    // const response = await wishlistApi.addToWishlist(product.id, token);
-    // setWishlist(response.data);
+    if (!token) return alert("Vui lòng đăng nhập!");
     
-    // Logic tạm thời vì chưa có API
-    setWishlist(prev => [...prev, product.id]);
-    console.log(`Added ${product.name} to wishlist.`);
+    setWishlist(prev => [...prev, product]); 
+
+    try {
+      const id = product._id || product.id;
+      const response = await wishlistApi.addToWishlist(id, token);
+      setWishlist(response.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
+  //Xóa khỏi yêu thích
   const removeFromWishlist = async (productId) => {
-    // const response = await wishlistApi.removeFromWishlist(productId, token);
-    // setWishlist(response.data);
+    if (!token) return;
 
-    // Logic tạm thời
-    setWishlist(prev => prev.filter(id => id !== productId));
-    console.log(`Removed ${productId} from wishlist.`);
+    setWishlist(prev => prev.filter(item => item._id !== productId && item.id !== productId));
+
+    try {
+      const response = await wishlistApi.removeFromWishlist(productId, token);
+      setWishlist(response.data);
+    } catch (error) {
+      console.error(error);
+    }
   };
   
+  //check
   const isInWishlist = (productId) => {
-    return wishlist.includes(productId);
+    return wishlist.some(item => item._id === productId || item.id === productId);
   };
 
   const openWishlist = () => setIsWishlistOpen(true);
@@ -55,13 +69,14 @@ export const WishlistProvider = ({ children }) => {
         addToWishlist, 
         removeFromWishlist, 
         isInWishlist,
-        isWishlistOpen, // <-- Thêm vào context
-        openWishlist,   // <-- Thêm vào context
-        closeWishlist   // <-- Thêm vào context
+        isWishlistOpen,
+        openWishlist,
+        closeWishlist
       }}
     >
       {children}
-    </WishlistContext.Provider>);
+    </WishlistContext.Provider>
+  );
 };
 
 export const useWishlist = () => {

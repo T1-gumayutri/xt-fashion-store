@@ -1,379 +1,609 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
+import { toast } from 'react-toastify';
+
+// Context & API
 import { useCart } from '../../contexts/CartContext';
+import { useAuth } from '../../contexts/AuthContext';
+import orderApi from '../../api/orderApi';
+import promotionApi from '../../api/promotionApi';
+import addressApi from '../../api/addressApi';
+import { getImageUrl } from '../../utils/imageHelper';
+
+// Layout
 import PageLayout from '../../components/layout/PageLayout/PageLayout';
 import styles from './CheckoutPage.module.scss';
-import { Link, useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
-import { useAuth } from '../../contexts/AuthContext';
-import { promotions } from '../../data/mockData'; // Import khuyến mãi
 
 const CheckoutPage = () => {
-  const { cartItems, selectedItems, clearCartItems } = useCart();
   const navigate = useNavigate();
-  const { user } = useAuth();
-  
-  const [formData, setFormData] = useState({
-    fullName: '',
-    email: '',
-    phone: '',
-    address: '',
-    note: '',
+  const { cartItems, selectedItems, clearCartItems } = useCart();
+  const { user, token } = useAuth();
+
+  // --- STATE DỮ LIỆU ---
+  const [addresses, setAddresses] = useState([]);
+  const [selectedAddressId, setSelectedAddressId] = useState('');
+  const [isAddingNewAddr, setIsAddingNewAddr] = useState(false);
+
+  const [newAddress, setNewAddress] = useState({
+    recipientName: user?.fullname || '',
+    phoneNumber: user?.phoneNumber || '',
+    street: '',
+    ward: '',
+    district: '',
+    city: '',
   });
-  const [errors, setErrors] = useState({});
-  const [paymentMethod, setPaymentMethod] = useState('cod');
 
-  // State cho khuyến mãi
+  const [paymentMethod, setPaymentMethod] = useState('cod'); // 'cod' | 'bank'
   const [promoCodeInput, setPromoCodeInput] = useState('');
-  const [appliedPromo, setAppliedPromo] = useState(null); // Lưu trữ TOÀN BỘ object promo đã áp dụng
-  const [discountAmount, setDiscountAmount] = useState(0); // Chỉ lưu số tiền giảm (fixed/percent)
+  const [discountAmount, setDiscountAmount] = useState(0);
+  const [orderNote, setOrderNote] = useState('');
+  const [appliedPromoCode, setAppliedPromoCode] = useState(null);
+  const [loading, setLoading] = useState(false);
 
+  // LỌC ITEM ĐƯỢC CHỌN
+  const checkoutItems = useMemo(
+    () =>
+      cartItems.filter((item) => {
+        if (!item.productId) return false;
+        const prodId = item.productId.id || item.productId._id;
+        return selectedItems.includes(`${prodId}-${item.color}-${item.size}`);
+      }),
+    [cartItems, selectedItems]
+  );
+
+  // TÍNH TIỀN
+  const subtotal = useMemo(
+    () =>
+      checkoutItems.reduce(
+        (total, item) => total + item.productId.price * item.quantity,
+        0
+      ),
+    [checkoutItems]
+  );
+
+  const shippingFee = subtotal >= 2000000 ? 0 : 30000;
+  const total = subtotal + shippingFee - discountAmount;
+
+  // LOAD ĐỊA CHỈ
   useEffect(() => {
-    if (user) {
-      setFormData(prev => ({
-        ...prev,
-        fullName: user.name || '',
-        email: user.email || '',
-      }));
-    }
-  }, [user]);
+    if (!token) return;
 
-  // Lọc sản phẩm
-  const itemsToCheckout = useMemo(() => 
-    cartItems.filter(item => selectedItems.includes(`${item.id}-${item.color}-${item.size}`))
-  , [cartItems, selectedItems]);
+    const fetchAddresses = async () => {
+      try {
+        const res = await addressApi.getMyAddresses(token);
+        setAddresses(res.data);
+        const defaultAddr = res.data.find((a) => a.isDefault) || res.data[0];
+        if (defaultAddr) {
+          setSelectedAddressId(defaultAddr.id || defaultAddr._id);
+        } else {
+          setIsAddingNewAddr(true);
+        }
+      } catch (error) {
+        console.log('Lỗi tải địa chỉ', error);
+      }
+    };
 
-  // Tính Tạm tính
-  const subtotal = useMemo(() => 
-    itemsToCheckout.reduce((total, item) => total + (item.price * item.quantity), 0)
-  , [itemsToCheckout]);
-  
-  // --- CẬP NHẬT LOGIC TÍNH PHÍ VẬN CHUYỂN ---
-  const shippingFee = useMemo(() => {
-    // 1. Kiểm tra nếu có mã freeship được áp dụng
-    if (appliedPromo && appliedPromo.type === 'shipping') {
-      return 0; // Miễn phí
-    }
-    // 2. Kiểm tra điều kiện freeship mặc định (đơn > 2 triệu)
-    if (subtotal >= 2000000 || subtotal === 0) {
-      return 0; // Miễn phí
-    }
-    // 3. Mặc định 30k
-    return 30000;
-  }, [subtotal, appliedPromo]); // Phụ thuộc vào tạm tính và mã KM
-  
-  // Tính Tổng cộng
-  const total = useMemo(() => {
-    // Tổng = Tạm tính + Phí ship (đã tính KM) - Tiền giảm giá (đã tính KM)
-    const calculatedTotal = subtotal + shippingFee - discountAmount;
-    return Math.max(0, calculatedTotal);
-  }, [subtotal, shippingFee, discountAmount]);
+    fetchAddresses();
+  }, [token]);
 
-  // Tự động kiểm tra lại mã KM nếu giỏ hàng thay đổi
-  useEffect(() => {
-    if (appliedPromo && subtotal < appliedPromo.minOrderValue) {
-      setAppliedPromo(null);
+  // THÊM ĐỊA CHỈ
+  const handleSaveNewAddress = async () => {
+    if (!newAddress.street || !newAddress.city || !newAddress.phoneNumber) {
+      return toast.warn('Điền đủ thông tin!');
+    }
+    try {
+      const res = await addressApi.addAddress(newAddress, token);
+      const newAddr = res.data;
+
+      const updatedList = [newAddr, ...addresses].sort((a, b) => {
+        if (a.isDefault === b.isDefault) return 0;
+        return a.isDefault ? -1 : 1;
+      });
+
+      setAddresses(updatedList);
+      setSelectedAddressId(newAddr.id || newAddr._id);
+      setIsAddingNewAddr(false);
+      toast.success('Đã thêm địa chỉ');
+    } catch (error) {
+      toast.error('Lỗi thêm địa chỉ');
+    }
+  };
+
+  // ÁP / HỦY MÃ GIẢM GIÁ
+  const handleApplyPromoCode = async () => {
+    if (!promoCodeInput.trim()) return toast.error('Nhập mã!');
+    try {
+      const res = await promotionApi.checkPromotion({
+        code: promoCodeInput,
+        cartTotal: subtotal,
+      });
+      setDiscountAmount(res.data.data.discountAmount);
+      setAppliedPromoCode(promoCodeInput);
+      toast.success(`Giảm ${res.data.data.discountAmount.toLocaleString()}đ`);
+    } catch (error) {
       setDiscountAmount(0);
-      setPromoCodeInput('');
-      toast.info('Mã khuyến mãi đã bị gỡ do không đủ điều kiện.');
-    }
-    // Tự động tính lại discount nếu là mã %
-    else if (appliedPromo && appliedPromo.type === 'percent') {
-      let discount = subtotal * (appliedPromo.value / 100);
-      if (appliedPromo.maxValue && discount > appliedPromo.maxValue) {
-        discount = appliedPromo.maxValue;
-      }
-      setDiscountAmount(Math.min(discount, subtotal));
-    }
-
-  }, [subtotal, appliedPromo]); // Chỉ phụ thuộc subtotal và appliedPromo
-
-  const formatPrice = (price) => {
-    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
-  };
-
-  const handleChange = (e) => {
-    const { name, value } = e.target;
-    setFormData(prev => ({ ...prev, [name]: value }));
-    if (errors[name]) {
-      setErrors(prev => ({ ...prev, [name]: null }));
+      setAppliedPromoCode(null);
+      toast.error(error.response?.data?.msg || 'Mã lỗi');
     }
   };
 
-  // --- HÀM ÁP DỤNG MÃ (CẬP NHẬT) ---
-  const handleApplyPromoCode = () => {
-    if (appliedPromo) return;
-
-    const code = promoCodeInput.trim().toUpperCase();
-    if (!code) {
-      toast.error('Vui lòng nhập mã khuyến mãi');
-      return;
-    }
-
-    const promo = promotions.find(p => p.code.toUpperCase() === code);
-
-    if (!promo) {
-      toast.error('Mã khuyến mãi không hợp lệ hoặc đã hết hạn.');
-      return;
-    }
-
-    // Kiểm tra điều kiện đơn hàng tối thiểu
-    if (subtotal < promo.minOrderValue) {
-      toast.warn(`Đơn hàng phải từ ${formatPrice(promo.minOrderValue)} để áp dụng mã này.`);
-      return;
-    }
-
-    // --- XỬ LÝ TÙY LOẠI MÃ ---
-    if (promo.type === 'fixed') {
-      const discount = Math.min(promo.value, subtotal);
-      setDiscountAmount(discount);
-      setAppliedPromo(promo);
-      toast.success(`Áp dụng mã giảm ${formatPrice(discount)} thành công!`);
-    } 
-    else if (promo.type === 'percent') {
-      let discount = subtotal * (promo.value / 100);
-      if (promo.maxValue && discount > promo.maxValue) {
-        discount = promo.maxValue;
-      }
-      discount = Math.min(discount, subtotal);
-      
-      setDiscountAmount(discount);
-      setAppliedPromo(promo);
-      toast.success(`Áp dụng mã giảm ${formatPrice(discount)} thành công!`);
-    } 
-    else if (promo.type === 'shipping') {
-      // Chỉ cần set mã, shippingFee useMemo sẽ tự động tính lại
-      setDiscountAmount(0); // Mã ship không giảm tiền
-      setAppliedPromo(promo);
-      toast.success('Áp dụng mã miễn phí vận chuyển thành công!');
-    }
-  };
-
-  // --- HÀM GỠ MÃ (CẬP NHẬT) ---
-  const handleRemovePromoCode = () => {
-    setAppliedPromo(null);
-    setDiscountAmount(0); // Reset cả tiền giảm
+  const handleRemovePromo = () => {
+    setAppliedPromoCode(null);
+    setDiscountAmount(0);
     setPromoCodeInput('');
-    toast.info('Đã gỡ mã khuyến mãi.');
-  };
-  // -------------------------------
-
-  const validateForm = () => {
-    // ... (Không thay đổi)
-    let newErrors = {};
-    if (!formData.fullName) newErrors.fullName = 'Vui lòng nhập họ và tên';
-    if (!formData.phone) newErrors.phone = 'Vui lòng nhập số điện thoại';
-    if (!formData.address) newErrors.address = 'Vui lòng nhập địa chỉ';
-    
-    if (!formData.email) {
-      newErrors.email = 'Vui lòng nhập email';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'Email không hợp lệ';
-    }
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmitOrder = (e) => {
+  // ĐẶT HÀNG
+  const handlePlaceOrder = async (e) => {
     e.preventDefault();
-    
-    if (!validateForm()) {
-      toast.error('Vui lòng kiểm tra lại thông tin giao hàng!');
-      return;
-    }
-    if (itemsToCheckout.length === 0) {
-      toast.error('Không có sản phẩm nào để thanh toán!');
-      navigate('/cart');
+
+    // kiểm tra token
+    const authToken = token || localStorage.getItem('token');
+    if (!authToken) {
+      toast.warn('Phiên đăng nhập đã hết, vui lòng đăng nhập lại');
+      navigate('/login');
       return;
     }
 
-    const mockOrderId = `XT-${Date.now().toString().slice(-6)}`;
-    
-    clearCartItems(selectedItems);
-    
-    toast.success('Đặt hàng thành công!');
-    // Truyền dữ liệu chi tiết sang trang thành công
-    navigate('/order-success', { 
-      state: { 
-        orderId: mockOrderId,
-        total: total, // Tổng tiền cuối cùng
-        subtotal: subtotal, // Tạm tính
-        shippingFee: shippingFee, // Phí ship (đã tính KM)
-        discount: discountAmount, // Tiền giảm (chỉ tiền)
-        appliedPromoCode: appliedPromo ? appliedPromo.code : null,
-        items: itemsToCheckout,
-        customer: formData
-      }, 
-      replace: true 
-    });
+    if (!selectedAddressId && !isAddingNewAddr) {
+      return toast.error('Chọn địa chỉ!');
+    }
+
+    if (checkoutItems.length === 0) {
+      return toast.error('Không có sản phẩm nào để đặt!');
+    }
+
+    setLoading(true);
+    try {
+      // 1. LẤY SHIPPING INFO
+      let shippingInfo = {};
+      if (isAddingNewAddr) {
+        shippingInfo = {
+          recipientName: newAddress.recipientName,
+          phoneNumber: newAddress.phoneNumber,
+          address: newAddress.street,
+          ward: newAddress.ward,
+          district: newAddress.district,
+          province: newAddress.city,
+        };
+      } else {
+        const addr = addresses.find(
+          (a) => a.id === selectedAddressId || a._id === selectedAddressId
+        );
+        if (!addr) throw new Error('Địa chỉ lỗi');
+        shippingInfo = {
+          recipientName: addr.recipientName,
+          phoneNumber: addr.phoneNumber,
+          address: addr.street,
+          ward: addr.ward,
+          district: addr.district,
+          province: addr.city,
+        };
+      }
+
+      // 2. CHUẨN BỊ DỮ LIỆU ORDER
+      const orderItems = checkoutItems.map((item) => ({
+        productId: item.productId.id || item.productId._id,
+        size: item.size,
+        color: item.color,
+        quantity: item.quantity,
+        name: item.productId.productName,
+        image: item.productId.img[0].url,
+        price: item.productId.price,
+      }));
+
+      const orderData = {
+        items: orderItems,
+        shippingInfo,
+        paymentMethod,
+        shippingFee,
+        promotionCode: discountAmount > 0 ? appliedPromoCode : null,
+      };
+
+      const itemsToDisplay = [...checkoutItems];
+
+      // 3. NHÁNH THANH TOÁN ONLINE (bank = VNPAY)
+      if (paymentMethod === 'bank') {
+        const createdOrderRes = await orderApi.createOrder(orderData, authToken);
+        const createdOrder = createdOrderRes.data;
+        const orderCode =
+          createdOrder.orderCode || createdOrder.id || createdOrder._id;
+
+        const orderSummaryForClient = {
+          orderId: orderCode,
+          total,
+          subtotal,
+          shippingFee,
+          discount: discountAmount,
+          customer: {
+            recipientName: shippingInfo.recipientName,
+            phoneNumber: shippingInfo.phoneNumber,
+            address: shippingInfo.address,
+            ward: shippingInfo.ward,
+            district: shippingInfo.district,
+            province: shippingInfo.province,
+            note: orderNote,
+          },
+          items: itemsToDisplay,
+        };
+        localStorage.setItem(
+          'lastOrderData',
+          JSON.stringify(orderSummaryForClient)
+        );
+
+        await clearCartItems(selectedItems);
+
+        const payRes = await orderApi.createPaymentUrl(
+          {
+            amount: total,
+            orderDescription: `Thanh toan don hang ${orderCode}`,
+            orderCode,
+            bankCode: '',
+          },
+          authToken
+        );
+
+        window.location.href = payRes.data.paymentUrl;
+      } else {
+        // 4. NHÁNH COD
+        const createdOrderRes = await orderApi.createOrder(orderData, authToken);
+        const createdOrder = createdOrderRes.data;
+        const orderCode =
+          createdOrder.orderCode || createdOrder.id || createdOrder._id;
+
+        const orderSummaryForClient = {
+          orderId: orderCode,
+          total,
+          subtotal,
+          shippingFee,
+          discount: discountAmount,
+          customer: {
+            recipientName: shippingInfo.recipientName,
+            phoneNumber: shippingInfo.phoneNumber,
+            address: shippingInfo.address,
+            ward: shippingInfo.ward,
+            district: shippingInfo.district,
+            province: shippingInfo.province,
+            note: orderNote,
+          },
+          items: itemsToDisplay,
+        };
+
+        // Lưu localStorage (để F5 vẫn xem được)
+        localStorage.setItem(
+          'lastOrderData',
+          JSON.stringify(orderSummaryForClient)
+        );
+
+        // Xoá CHỈ những sản phẩm vừa đặt khỏi giỏ
+        await clearCartItems(selectedItems);
+
+        // Điều hướng sang trang chi tiết đơn hàng
+        navigate('/order-success', {
+          state: orderSummaryForClient,
+          replace: true,
+        });
+      }
+    } catch (error) {
+      console.error('Lỗi đặt hàng:', error);
+      const msg =
+        error.response?.data?.msg ||
+        error.response?.data?.message ||
+        error.message ||
+        'Đặt hàng thất bại';
+      toast.error(msg);
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const formatPrice = (price) =>
+    new Intl.NumberFormat('vi-VN', {
+      style: 'currency',
+      currency: 'VND',
+    }).format(price);
+
+  // 👉 Nếu không có sản phẩm được chọn thì hiển thị thông báo, KHÔNG redirect
+  if (checkoutItems.length === 0) {
+    return (
+      <PageLayout pageTitle="Thanh Toán">
+        <div className={styles.container}>
+          <p style={{ textAlign: 'center', marginTop: 30 }}>
+            Không có sản phẩm nào để thanh toán.{' '}
+            <Link to="/cart" style={{ color: '#c92127', fontWeight: 600 }}>
+              Quay lại giỏ hàng
+            </Link>
+          </p>
+        </div>
+      </PageLayout>
+    );
+  }
 
   return (
-    <PageLayout pageTitle="Thanh toán">
-      <div className={styles.checkoutContainer}>
-        <form onSubmit={handleSubmitOrder} className={styles.checkoutGrid} noValidate>
-          {/* Cột bên trái: Thông tin khách hàng (Không thay đổi) */}
+    <PageLayout pageTitle="Thanh Toán">
+      <div className={styles.container}>
+        <form onSubmit={handlePlaceOrder} className={styles.checkoutGrid}>
+          {/* CỘT TRÁI */}
           <div className={styles.customerInfo}>
-            {/* ... (Giữ nguyên input họ tên, email, sđt, địa chỉ, ghi chú) ... */}
-            <h2>Thông tin giao hàng</h2>
-            <div className={styles.inputGroup}>
-              <input 
-                type="text" 
-                name="fullName"
-                placeholder="Họ và tên" 
-                className={`${styles.inputField} ${errors.fullName ? styles.inputError : ''}`}
-                value={formData.fullName}
-                onChange={handleChange}
-              />
-              {errors.fullName && <span className={styles.errorMessage}>{errors.fullName}</span>}
-            </div>
-            
-            <div className={styles.inputGroup}>
-              <input 
-                type="email" 
-                name="email"
-                placeholder="Email" 
-                className={`${styles.inputField} ${errors.email ? styles.inputError : ''}`}
-                value={formData.email}
-                onChange={handleChange}
-              />
-              {errors.email && <span className={styles.errorMessage}>{errors.email}</span>}
+            {/* PHẦN ĐỊA CHỈ */}
+            <div className={styles.sectionHeader}>
+              <h2>Địa chỉ nhận hàng</h2>
+              {!isAddingNewAddr && (
+                <button
+                  type="button"
+                  className={styles.addAddressBtn}
+                  onClick={() => setIsAddingNewAddr(true)}
+                >
+                  + Thêm mới
+                </button>
+              )}
             </div>
 
-            <div className={styles.inputGroup}>
-              <input 
-                type="tel" 
-                name="phone"
-                placeholder="Số điện thoại" 
-                className={`${styles.inputField} ${errors.phone ? styles.inputError : ''}`}
-                value={formData.phone}
-                onChange={handleChange}
+            {/* Form Thêm Mới */}
+            {isAddingNewAddr && (
+              <div className={styles.newAddressForm}>
+                <div className={styles.formRow}>
+                  <input
+                    placeholder="Họ tên"
+                    value={newAddress.recipientName}
+                    onChange={(e) =>
+                      setNewAddress({
+                        ...newAddress,
+                        recipientName: e.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    placeholder="SĐT"
+                    value={newAddress.phoneNumber}
+                    onChange={(e) =>
+                      setNewAddress({
+                        ...newAddress,
+                        phoneNumber: e.target.value,
+                      })
+                    }
+                  />
+                </div>
+                <input
+                  className={styles.fullWidth}
+                  placeholder="Địa chỉ (Số nhà, đường)"
+                  value={newAddress.street}
+                  onChange={(e) =>
+                    setNewAddress({ ...newAddress, street: e.target.value })
+                  }
+                />
+                <div className={styles.formRowThree}>
+                  <input
+                    placeholder="Phường/Xã"
+                    value={newAddress.ward}
+                    onChange={(e) =>
+                      setNewAddress({ ...newAddress, ward: e.target.value })
+                    }
+                  />
+                  <input
+                    placeholder="Quận/Huyện"
+                    value={newAddress.district}
+                    onChange={(e) =>
+                      setNewAddress({
+                        ...newAddress,
+                        district: e.target.value,
+                      })
+                    }
+                  />
+                  <input
+                    placeholder="Tỉnh/TP"
+                    value={newAddress.city}
+                    onChange={(e) =>
+                      setNewAddress({ ...newAddress, city: e.target.value })
+                    }
+                  />
+                </div>
+                <div className={styles.formActions}>
+                  <button
+                    type="button"
+                    className={styles.saveBtn}
+                    onClick={handleSaveNewAddress}
+                  >
+                    Lưu lại
+                  </button>
+                  <button
+                    type="button"
+                    className={styles.cancelBtn}
+                    onClick={() => setIsAddingNewAddr(false)}
+                  >
+                    Hủy
+                  </button>
+                </div>
+              </div>
+            )}
+
+            {/* Danh Sách Địa Chỉ */}
+            {!isAddingNewAddr && (
+              <div className={styles.addressList}>
+                {addresses.map((addr) => {
+                  const addrId = addr.id || addr._id;
+                  return (
+                    <label
+                      key={addrId}
+                      className={`${styles.addressCard} ${
+                        selectedAddressId === addrId ? styles.selected : ''
+                      }`}
+                    >
+                      <div className={styles.radioCol}>
+                        <input
+                          type="radio"
+                          name="address"
+                          checked={selectedAddressId === addrId}
+                          onChange={() => setSelectedAddressId(addrId)}
+                        />
+                      </div>
+                      <div className={styles.infoCol}>
+                        <div className={styles.nameRow}>
+                          <strong>{addr.recipientName}</strong>
+                          <span>| {addr.phoneNumber}</span>
+                          {addr.isDefault && (
+                            <span className={styles.defaultTag}>Mặc định</span>
+                          )}
+                        </div>
+                        <p className={styles.addrText}>
+                          {addr.street}, {addr.ward}, {addr.district},{' '}
+                          {addr.city}
+                        </p>
+                      </div>
+                    </label>
+                  );
+                })}
+                {addresses.length === 0 && (
+                  <p style={{ color: '#666' }}>Chưa có địa chỉ nào.</p>
+                )}
+              </div>
+            )}
+
+            {/* GHI CHÚ */}
+            <div style={{ marginTop: '20px' }}>
+              <h3 style={{ fontSize: '1rem', marginBottom: '10px' }}>
+                Ghi chú đơn hàng
+              </h3>
+              <textarea
+                placeholder="Ví dụ: Giao giờ hành chính..."
+                className={styles.inputField}
+                rows="2"
+                value={orderNote}
+                onChange={(e) => setOrderNote(e.target.value)}
               />
-              {errors.phone && <span className={styles.errorMessage}>{errors.phone}</span>}
             </div>
 
-            <div className={styles.inputGroup}>
-              <input 
-                type="text" 
-                name="address"
-                placeholder="Địa chỉ" 
-                className={`${styles.inputField} ${errors.address ? styles.inputError : ''}`}
-                value={formData.address}
-                onChange={handleChange}
-              />
-              {errors.address && <span className={styles.errorMessage}>{errors.address}</span>}
-            </div>
-            
-            <textarea 
-              name="note"
-              placeholder="Ghi chú (tùy chọn)" 
-              className={styles.inputField}
-              value={formData.note}
-              onChange={handleChange}
-            ></textarea>
-            
-            {/* Phương thức thanh toán (Không thay đổi) */}
+            {/* PHƯƠNG THỨC THANH TOÁN */}
             <h2 className={styles.paymentTitle}>Phương thức thanh toán</h2>
             <div className={styles.paymentOptions}>
-              <label className={styles.paymentOption}>
-                <input 
-                  type="radio" 
-                  name="paymentMethod" 
-                  value="cod" 
+              <label
+                className={`${styles.paymentOption} ${
+                  paymentMethod === 'cod' ? styles.active : ''
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="cod"
                   checked={paymentMethod === 'cod'}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
+                  onChange={() => setPaymentMethod('cod')}
                 />
-                <img src="/assets/images/logo.png" alt="COD" className={styles.paymentIcon} />
-                Thanh toán khi nhận hàng (COD)
+                <img
+                  src="/assets/images/logo.png"
+                  alt="COD"
+                  className={styles.paymentIcon}
+                />
+                <span>Thanh toán khi nhận hàng (COD)</span>
               </label>
-              <label className={styles.paymentOption}>
-                <input 
-                  type="radio" 
-                  name="paymentMethod" 
-                  value="vnpay" 
-                  checked={paymentMethod === 'vnpay'}
-                  onChange={(e) => setPaymentMethod(e.target.value)}
+              <label
+                className={`${styles.paymentOption} ${
+                  paymentMethod === 'bank' ? styles.active : ''
+                }`}
+              >
+                <input
+                  type="radio"
+                  name="paymentMethod"
+                  value="bank"
+                  checked={paymentMethod === 'bank'}
+                  onChange={() => setPaymentMethod('bank')}
                 />
-                 <img src="/assets/images/vnpay.png" alt="VNPAY" className={styles.paymentIcon} />
-                Thanh toán qua VNPAY
+                <img
+                  src="/assets/images/vnpay.png"
+                  alt="VNPAY"
+                  className={styles.paymentIcon}
+                />
+                <span>Thanh toán qua VNPAY</span>
               </label>
             </div>
           </div>
 
-          {/* Cột bên phải: Tóm tắt đơn hàng (Không thay đổi UI) */}
+          {/* CỘT PHẢI: TÓM TẮT ĐƠN HÀNG */}
           <div className={styles.orderSummary}>
-            <h2>Đơn hàng của bạn ({itemsToCheckout.length} sản phẩm)</h2>
-            {/* ... (Phần map sản phẩm) ... */}
+            <h2>Đơn hàng ({checkoutItems.length} sản phẩm)</h2>
             <div className={styles.summaryItems}>
-              {itemsToCheckout.length > 0 ? (
-                itemsToCheckout.map(item => (
-                  <div key={`${item.id}-${item.color}-${item.size}`} className={styles.summaryItem}>
-                    <img src={item.imageUrl || item.images[0]} alt={item.name} />
+              {checkoutItems.map((item, idx) => {
+                const product = item.productId;
+                const imageSrc =
+                  product.img && product.img.length > 0
+                    ? getImageUrl(product.img[0].url)
+                    : '';
+                return (
+                  <div key={idx} className={styles.summaryItem}>
+                    <img src={imageSrc} alt={product.productName} />
                     <div className={styles.itemInfo}>
-                      <p>{item.name}</p>
-                      <span>Màu: {item.color} / Size: {item.size}</span>
-                      <span>Số lượng: {item.quantity}</span>
+                      <p>{product.productName}</p>
+                      <span>
+                        {item.color} / {item.size} x {item.quantity}
+                      </span>
                     </div>
-                    <span className={styles.itemPrice}>{formatPrice(item.price * item.quantity)}</span>
+                    <span className={styles.itemPrice}>
+                      {formatPrice(product.price * item.quantity)}
+                    </span>
                   </div>
-                ))
-              ) : (
-                <p className={styles.emptyMessage}>
-                  Không có sản phẩm nào. 
-                  <Link to="/"> Quay lại mua sắm</Link>
-                </p>
-              )}
+                );
+              })}
             </div>
 
-            {itemsToCheckout.length > 0 && (
-              <>
-                {/* Phần khuyến mãi (Không thay đổi UI) */}
-                {!appliedPromo ? (
-                  <div className={styles.promoCode}>
-                    <input 
-                      type="text" 
-                      placeholder="Mã giảm giá" 
-                      value={promoCodeInput} 
-                      onChange={(e) => setPromoCodeInput(e.target.value)}
-                    />
-                    <button type="button" onClick={handleApplyPromoCode}>Áp dụng</button>
-                  </div>
-                ) : (
-                  <div className={styles.appliedPromo}>
-                    <span>Mã áp dụng: <strong>{appliedPromo.code}</strong></span>
-                    <button type="button" onClick={handleRemovePromoCode} className={styles.removePromoBtn}>Xóa</button>
-                  </div>
-                )}
-                
-                {/* Phần tính toán (UI KHÔNG ĐỔI, nhưng logic đã đúng) */}
-                <div className={styles.calculation}>
-                  <div className={styles.calcRow}>
-                    <span>Tạm tính</span>
-                    <span>{formatPrice(subtotal)}</span>
-                  </div>
-                  <div className={styles.calcRow}>
-                    <span>Phí vận chuyển</span>
-                    {/* Biến shippingFee giờ đã tự động là 0 nếu có KM */}
-                    <span>{shippingFee === 0 ? 'Miễn phí' : formatPrice(shippingFee)}</span>
-                  </div>
+            <div className={styles.promoCode}>
+              <input
+                placeholder="Mã giảm giá"
+                value={promoCodeInput}
+                onChange={(e) => setPromoCodeInput(e.target.value)}
+              />
+              <button type="button" onClick={handleApplyPromoCode}>
+                Áp dụng
+              </button>
+            </div>
 
-                  {/* Chỉ hiển thị khi có giảm giá (fixed/percent) */}
-                  {discountAmount > 0 && (
-                    <div className={`${styles.calcRow} ${styles.discountRow}`}>
-                      <span>Giảm giá</span>
-                      <span>- {formatPrice(discountAmount)}</span>
-                    </div>
-                  )}
-                  
-                  <div className={styles.calcTotal}>
-                    <span>Tổng cộng</span>
-                    <span className={styles.totalPrice}>{formatPrice(total)}</span>
-                  </div>
-                </div>
-                <button type="submit" className={styles.placeOrderButton}>
-                  {paymentMethod === 'cod' ? 'Hoàn tất đơn hàng' : 'Thanh toán VNPAY'}
+            {appliedPromoCode && (
+              <div className={styles.appliedPromo}>
+                <span>
+                  Đã áp dụng mã: <strong>{appliedPromoCode}</strong>
+                </span>
+                <button
+                  type="button"
+                  className={styles.removePromoBtn}
+                  onClick={handleRemovePromo}
+                >
+                  Hủy mã
                 </button>
-              </>
+              </div>
             )}
+
+            <div className={styles.calculation}>
+              <div className={styles.calcRow}>
+                <span>Tạm tính</span>
+                <span>{formatPrice(subtotal)}</span>
+              </div>
+              <div className={styles.calcRow}>
+                <span>Phí vận chuyển</span>
+                <span>{formatPrice(shippingFee)}</span>
+              </div>
+              {discountAmount > 0 && (
+                <div className={`${styles.calcRow} ${styles.discountRow}`}>
+                  <span>Giảm giá</span>
+                  <span>-{formatPrice(discountAmount)}</span>
+                </div>
+              )}
+              <div className={styles.calcTotal}>
+                <span>Tổng cộng</span>
+                <span className={styles.totalPrice}>
+                  {formatPrice(total)}
+                </span>
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              className={styles.placeOrderButton}
+              disabled={loading}
+            >
+              {loading
+                ? 'ĐANG XỬ LÝ...'
+                : paymentMethod === 'bank'
+                ? 'THANH TOÁN VNPAY'
+                : 'ĐẶT HÀNG'}
+            </button>
           </div>
         </form>
       </div>

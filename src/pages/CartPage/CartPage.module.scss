@@ -39,14 +39,12 @@
   }
 }
 
-/* --- BỐ CỤC LƯỚI 2 CỘT --- */
 .cartGrid {
   display: grid;
-  grid-template-columns: 2fr 1fr; // Cột danh sách sản phẩm rộng gấp đôi cột tổng kết
-  gap: 30px;
+  grid-template-columns: 2fr 1fr;
 
   @media (max-width: 992px) {
-    grid-template-columns: 1fr; // Chuyển thành 1 cột trên tablet/mobile
+    grid-template-columns: 1fr;
   }
 }
 
@@ -98,24 +96,50 @@
   border: 1px solid #ddd;
   border-radius: 4px;
   overflow: hidden;
+  width: fit-content;
+  height: 35px;
+  background-color: #fff;
 
   button {
-    width: 30px;
-    height: 30px;
+    width: 35px;
+    height: 100%;
     border: none;
     background-color: #f8f8f8;
     cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    
+    svg {
+      font-size: 1rem;
+      color: #333;
+    }
+
     &:hover { background-color: #eee; }
   }
 
   input {
-    width: 40px;
-    height: 30px;
+    width: 45px;
+    height: 100%;
     text-align: center;
     border: none;
     border-left: 1px solid #ddd;
     border-right: 1px solid #ddd;
-    font-weight: 500;
+    font-weight: 600;
+    color: #333;
+    outline: none;
+    background-color: #fff;
+    padding: 0;
+    
+    /* Ẩn mũi tên mặc định của input number */
+    appearance: textfield;
+    -moz-appearance: textfield;
+    &::-webkit-outer-spin-button,
+    &::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
   }
 }
 

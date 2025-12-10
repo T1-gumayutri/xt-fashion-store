@@ -38,12 +38,20 @@ const updateStatus = (id, data, token) => {
   });
 };
 
+// API lấy link thanh toán VNPAY
+const createPaymentUrl = (data, token) => {
+    return axios.post('http://localhost:5000/api/payment/create_payment_url', data, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+};
+
 const orderApi = {
   createOrder,
   getMyOrders,
   getOrderById,
   getAllOrders,
   updateStatus,
+  createPaymentUrl
 };
 
 export default orderApi;

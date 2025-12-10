@@ -4,7 +4,7 @@ const Category = require('../models/Category');
 // GET /api/products
 exports.getAllProducts = async (req, res) => {
   try {
-    const pageSize = 12;
+    const pageSize = Number(req.query.limit) || 12;
     const page = Number(req.query.page) || 1;
 
     const query = { isHidden: false };
@@ -59,11 +59,14 @@ exports.createProduct = async (req, res) => {
     const { 
       productName, 
       description, 
+      fullDescription,
+      subCategory,
       categoryId, 
       price, 
       img,
       variants,
-      isDefault 
+      isDefault,
+      isHidden 
     } = req.body;
 
     let inventory = 0;
@@ -74,12 +77,15 @@ exports.createProduct = async (req, res) => {
     const newProduct = new Product({
       productName,
       description,
+      fullDescription,
+      subCategory,
       categoryId,
       price,
       img,
       variants,
       inventory,
-      isDefault
+      isDefault: isDefault || false,
+      isHidden: isHidden || false
     });
 
     const savedProduct = await newProduct.save();
@@ -95,18 +101,29 @@ exports.createProduct = async (req, res) => {
 exports.updateProduct = async (req, res) => {
   try {
     const { 
-      productName, description, categoryId, price, 
-      img, variants, isDefault, isHidden 
+      productName, 
+      description, 
+      fullDescription,
+      subCategory,
+      categoryId, 
+      price, 
+      img, 
+      variants, 
+      isDefault, 
+      isHidden 
     } = req.body;
 
     const product = await Product.findById(req.params.id);
     if (!product) return res.status(404).json({ msg: 'Không tìm thấy sản phẩm' });
 
     if (productName) product.productName = productName;
-    if (description) product.description = description;
+    if (description !== undefined) product.description = description;
+    if (fullDescription !== undefined) product.fullDescription = fullDescription;
+    if (subCategory !== undefined) product.subCategory = subCategory;
     if (categoryId) product.categoryId = categoryId;
-    if (price) product.price = price;
+    if (price !== undefined) product.price = price;
     if (img) product.img = img;
+    
     if (isDefault !== undefined) product.isDefault = isDefault;
     if (isHidden !== undefined) product.isHidden = isHidden;
 

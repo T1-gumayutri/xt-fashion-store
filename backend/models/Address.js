@@ -18,11 +18,27 @@ const AddressSchema = new Schema({
     required: true,
     trim: true
   },
-  address: {
-    type: String,
-    required: true,
-    trim: true
+  street: { 
+    type: String, 
+    required: true, 
+    trim: true 
   },
+  ward: { 
+    type: String, 
+    required: true, 
+    trim: true 
+  },
+  district: { 
+    type: String, 
+    required: true, 
+    trim: true 
+  },
+  city: { 
+    type: String, 
+    required: true, 
+    trim: true 
+  },
+  
   isDefault: {
     type: Boolean,
     default: false

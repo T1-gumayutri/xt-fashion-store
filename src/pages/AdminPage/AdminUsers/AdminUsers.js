@@ -7,11 +7,12 @@ import {
   FiChevronLeft,
   FiChevronRight,
 } from "react-icons/fi";
-import axios from "axios";
-import { useAuth } from "../../../contexts/AuthContext";  
 
-const PAGE_SIZE = 6;
-const API_BASE = "http://localhost:5000/api";
+import { useAuth } from "../../../contexts/AuthContext";
+import userApi from "../../../api/userApi";
+import { toast } from "react-toastify";
+
+const PAGE_SIZE = 10;
 
 export default function AdminUsers() {
   const [rows, setRows] = useState([]);
@@ -27,28 +28,29 @@ export default function AdminUsers() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
-  const { token } = useAuth();               
+  const { token } = useAuth();
 
-  // ✅ LẤY DỮ LIỆU TỪ MONGODB
   useEffect(() => {
     const fetchUsers = async () => {
-      if (!token) return; 
+      if (!token) return;
 
       try {
         setLoading(true);
         setError("");
-        const res = await axios.get(`${API_BASE}/users`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
-        const users = (res.data || []).map((u) => ({
+
+        const res = await userApi.getAllUsers(token);
+        const raw = res.data || res.users || res.data?.users || [];
+
+        const users = (Array.isArray(raw) ? raw : []).map((u) => ({
           ...u,
-          id: u._id,
+          id: u.id,
+          name: u.fullname || u.name || "",
+          email: u.email || "",
           role: u.role || "user",
-          status: u.status || "active",
+          status: u.isBlocked ? "blocked" : "active",
           createdAt: u.createdAt || "",
         }));
+
         setRows(users);
       } catch (err) {
         console.error(err);
@@ -59,7 +61,7 @@ export default function AdminUsers() {
     };
 
     fetchUsers();
-  }, [token]);   
+  }, [token]);
 
   const roles = useMemo(() => {
     const set = new Set(rows.map((r) => r.role || "user"));
@@ -130,40 +132,48 @@ export default function AdminUsers() {
     }
   };
 
-  // ✅ GỌI API CẬP NHẬT USER (kể cả ROLE)
   const handleSaveEdit = async () => {
     if (!editingUser) return;
     try {
       setSaving(true);
       setError("");
+
       const payload = {
-        name: editingUser.name,
+        fullname: editingUser.name,
         email: editingUser.email,
         role: editingUser.role,
-        status: editingUser.status,
+        isBlocked: editingUser.status === "blocked",
       };
-      const res = await axios.put(
-        `${API_BASE}/users/${editingUser.id}`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
+
+      const res = await userApi.updateUserById(
+        token,
+        editingUser.id,
+        payload
       );
-      const updated = res.data;
+      const updated = res.data || res;
 
       setRows((prev) =>
         prev.map((u) =>
           u.id === editingUser.id
-            ? { ...u, ...updated, id: updated._id || editingUser.id }
+            ? {
+                ...u,
+                ...updated,
+                id: updated.id || editingUser.id,
+                name: updated.fullname || updated.name || editingUser.name,
+                role: updated.role || editingUser.role,
+                status: updated.isBlocked ? "blocked" : "active",
+                createdAt: updated.createdAt || u.createdAt,
+              }
             : u
         )
       );
+
+      toast.success("Cập nhật người dùng thành công");
       setEditingUser(null);
     } catch (err) {
       console.error(err);
       setError("Không lưu được thay đổi người dùng");
+      toast.error("Không lưu được thay đổi người dùng");
     } finally {
       setSaving(false);
     }
@@ -172,16 +182,12 @@ export default function AdminUsers() {
   const handleDelete = async (id) => {
     if (!window.confirm("Bạn có chắc muốn xóa người dùng này?")) return;
     try {
-      await axios.delete(`${API_BASE}/users/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,     
-        },
-      });
+      await userApi.deleteUserById(token, id);
       setRows((prev) => prev.filter((r) => r.id !== id));
-      alert("Đã xóa người dùng thành công!");
+      toast.success("Đã xóa người dùng thành công!");
     } catch (err) {
       console.error(err);
-      alert("Lỗi khi xóa người dùng!");
+      toast.error("Lỗi khi xóa người dùng!");
     }
   };
 
@@ -264,7 +270,7 @@ export default function AdminUsers() {
             {paginated.length === 0 ? (
               <tr>
                 <td
-                  colSpan={6}
+                  colSpan={7}
                   style={{
                     textAlign: "center",
                     padding: 24,
@@ -277,9 +283,7 @@ export default function AdminUsers() {
             ) : (
               paginated.map((r, index) => (
                 <tr key={r.id}>
-                  <td>
-                {(page - 1) * PAGE_SIZE + index + 1}
-                </td>
+                  <td>{(page - 1) * PAGE_SIZE + index + 1}</td>
                   <td>{r.name}</td>
                   <td>{r.email}</td>
                   <td>

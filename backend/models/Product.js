@@ -18,6 +18,11 @@ const ProductSchema = new Schema(
       index: 'text',
     },
 
+    subCategory: {
+      type: String,
+      index: true
+    },
+
     slug: {
       type: String,
       unique: true,
@@ -28,6 +33,11 @@ const ProductSchema = new Schema(
       type: String,
       default: '',
       trim: true,
+    },
+
+    fullDescription: 
+    {
+      type: String
     },
 
     img: [
@@ -48,7 +58,9 @@ const ProductSchema = new Schema(
       {
         size: { type: String, required: true },
         color: { type: String, required: true },
+        colorHex: { type: String},
         quantity: { type: Number, required: true, default: 0 },
+        images: { type: String },
       }
     ],
 
@@ -72,7 +84,17 @@ const ProductSchema = new Schema(
     isHidden: {
         type: Boolean,
         default: false
-    }
+    },
+    rating: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
+    numReviews: {
+      type: Number,
+      required: true,
+      default: 0,
+    },
   },
   {
     timestamps: { createdAt: 'createAt', updatedAt: 'updateAt' },

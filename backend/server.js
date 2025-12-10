@@ -11,9 +11,13 @@ const uploadRouter = require('./routes/uploadRoutes');
 const cartsRouter = require('./routes/cartRoutes');
 const productsRouter = require('./routes/productRoutes');
 const ordersRouter = require('./routes/orderRoutes');
+const promotionsRouter = require('./routes/promotionRoutes');
+const wishlistsRouter = require('./routes/wishlistRoutes');
+const addressesRouter = require('./routes/addressRoutes');
+const paymentRouter = require('./routes/paymentRoutes');
 // const newsRouter = require('./routes/newsRoutes');
 // const messagesRouter = require('./routes/messageRoutes');
-// const analyticsRouter = require('./routes/analyticsRoutes');
+const analyticsRouter = require('./routes/analyticsRoutes');
 const errorHandler = require('./middleware/errorHandler'); 
 
 const app = express();
@@ -42,9 +46,13 @@ app.use('/api/categories', categoriesRouter);
 app.use('/api/upload', uploadRouter);
 app.use('/api/carts', cartsRouter);
 app.use('/api/orders', ordersRouter);
+app.use('/api/promotions', promotionsRouter);
+app.use('/api/wishlist', wishlistsRouter);
+app.use('/api/addresses', addressesRouter);
+app.use('/api/payment', paymentRouter);
 // app.use('/api/news', newsRouter);
 // app.use('/api/messages', messagesRouter);
-// app.use('/api/analytics', analyticsRouter);
+app.use('/api/analytics', analyticsRouter);
 
 app.use(errorHandler);
 

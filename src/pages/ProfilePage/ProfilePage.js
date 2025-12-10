@@ -2,18 +2,25 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import PageLayout from '../../components/layout/PageLayout/PageLayout';
-// --- BƯỚC 1: XÓA IMPORT BREADCRUMB VÌ KHÔNG DÙNG NỮA ---
-// import Breadcrumb from '../../common/Breadcrumb/Breadcrumb'; 
 import styles from './ProfilePage.module.scss';
-import { FiUser, FiShoppingCart, FiKey, FiLogOut, FiMail, FiPhone } from 'react-icons/fi';
+import { 
+  FiUser, 
+  FiShoppingCart, 
+  FiKey, 
+  FiLogOut, 
+  FiMail, 
+  FiPhone 
+} from 'react-icons/fi';
 import { toast } from 'react-toastify';
 
 import userApi from '../../api/userApi';
+import orderApi from '../../api/orderApi';
+import { getImageUrl } from '../../utils/imageHelper';
 
 const ProfilePage = () => {
-  const { user, logout, login } = useAuth();
+  const { user, logout, login, token } = useAuth();
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('info'); // 'info', 'orders', 'password'
+  const [activeTab, setActiveTab] = useState('info');
   const [loading, setLoading] = useState(false);
 
   // State cho form thông tin
@@ -29,6 +36,10 @@ const ProfilePage = () => {
     confirmPassword: '',
   });
 
+  // STATE LỊCH SỬ ĐƠN HÀNG
+  const [orders, setOrders] = useState([]);
+  const [ordersLoading, setOrdersLoading] = useState(false);
+
   // Tải thông tin người dùng vào form khi component được mount
   useEffect(() => {
     if (user) {
@@ -39,21 +50,39 @@ const ProfilePage = () => {
     }
   }, [user]);
 
+  // LẤY LỊCH SỬ ĐƠN HÀNG KHI MỞ TAB "orders"
+  useEffect(() => {
+    const fetchOrders = async () => {
+      if (activeTab !== 'orders') return;
+      if (!token) return;
+
+      setOrdersLoading(true);
+      try {
+        const res = await orderApi.getMyOrders(token);
+        setOrders(res.data || []);
+      } catch (err) {
+        console.error(err);
+        toast.error('Không tải được lịch sử đơn hàng');
+      } finally {
+        setOrdersLoading(false);
+      }
+    };
+
+    fetchOrders();
+  }, [activeTab, token]);
+
   // Handler khi submit form thông tin
   const handleInfoSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     
     try {
-      const token = localStorage.getItem('token'); // Lấy token
-      if (!token) return;
+      const tokenLocal = localStorage.getItem('token'); 
+      if (!tokenLocal) return;
 
-      // Gọi API
-      const response = await userApi.updateMe(token, formData);
-
-      // API trả về user mới, ta cập nhật lại vào Context để UI hiển thị đúng ngay lập tức
-      // Lưu ý: login ở đây đóng vai trò là "setUser"
-      login(response.data, token); 
+      const response = await userApi.updateMe(tokenLocal, formData);
+      // cập nhật lại context
+      login(response.data, tokenLocal); 
 
       toast.success('Cập nhật thông tin thành công!');
     } catch (error) {
@@ -75,16 +104,13 @@ const ProfilePage = () => {
 
     setLoading(true);
     try {
-      const token = localStorage.getItem('token');
-      
-      await userApi.changePassword(token, {
+      const tokenLocal = localStorage.getItem('token');
+      await userApi.changePassword(tokenLocal, {
         currentPassword: passwordData.currentPassword,
         newPassword: passwordData.newPassword
       });
 
       toast.success('Đổi mật khẩu thành công!');
-      
-      // Reset form
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
     } catch (error) {
       const errorMsg = error.response?.data?.msg || 'Đổi mật khẩu thất bại';
@@ -97,6 +123,94 @@ const ProfilePage = () => {
   const handleLogout = () => {
     logout();
     navigate('/');
+  };
+
+  // FORMAT GIÁ & DATE
+  const formatPrice = (price) =>
+    new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+
+  const formatDate = (dateStr) =>
+    new Date(dateStr).toLocaleString('vi-VN');
+
+  // --- TEXT TRẠNG THÁI ĐƠN (BÊN PHẢI) ---
+  const renderStatusText = (order) => {
+    if (order.paymentMethod === 'bank' && !order.isPaid) {
+      return 'Chờ thanh toán';
+    }
+    switch (order.status) {
+      case 'pending':    return 'Đang xử lý';
+      case 'processing': return 'Đang chuẩn bị hàng';
+      case 'shipped':    return 'Đang giao';
+      case 'delivered':  return 'Đã giao';
+      case 'cancelled':  return 'Đã huỷ';
+      default:           return order.status || 'Không rõ';
+    }
+  };
+
+  const statusClass = (order) => {
+    if (order.status === 'cancelled') return styles.cancelled;
+    if (order.status === 'delivered') return styles.delivered;
+    if (order.paymentMethod === 'bank' && !order.isPaid) return styles.pending;
+    if (order.status === 'shipped' || order.status === 'processing') return styles.processing;
+    return styles.pending;
+  };
+
+  // --- TEXT TRẠNG THÁI THANH TOÁN ---
+  const renderPaymentText = (order) => {
+    if (order.paymentMethod !== 'bank') {
+      return order.isPaid ? 'Đã thanh toán' : 'Chưa thanh toán';
+    }
+
+    // VNPAY, dùng paymentStatus
+    switch (order.paymentStatus) {
+      case 'paid':
+        return 'Đã thanh toán';
+      case 'failed':
+        return 'Thanh toán thất bại';
+      case 'expired':
+        return 'Thanh toán hết hạn';
+      case 'unpaid':
+      default:
+        return 'Chưa thanh toán';
+    }
+  };
+
+  // Cho phép thanh toán lại?
+  const canPayNow = (order) => {
+    return (
+      order.paymentMethod === 'bank' &&
+      (order.paymentStatus === 'unpaid' || order.paymentStatus === 'failed') &&
+      order.status === 'pending'
+    );
+  };
+
+  // NÚT "THANH TOÁN NGAY" → GỌI VNPAY LẠI
+  const handlePayOrder = async (order) => {
+    try {
+      if (!token) {
+        toast.warn('Vui lòng đăng nhập lại');
+        return;
+      }
+
+      const orderCode = order.orderCode || order._id;
+      if (!orderCode) {
+        toast.error('Không tìm thấy mã đơn hàng để thanh toán');
+        return;
+      }
+
+      const res = await orderApi.createPaymentUrl(
+        {
+          orderCode,
+          bankCode: '', 
+        },
+        token
+      );
+
+      window.location.href = res.data.paymentUrl;
+    } catch (err) {
+      console.error(err);
+      toast.error('Không tạo được link thanh toán');
+    }
   };
 
   // Render nội dung dựa trên tab đang active
@@ -149,16 +263,103 @@ const ProfilePage = () => {
             </form>
           </div>
         );
+
       case 'orders':
         return (
-          <div>
+          <div className={styles.ordersContainer}>
             <h2>Lịch sử đơn hàng</h2>
-            <p className={styles.placeholder}>
-              Bạn chưa có đơn hàng nào.
-              {/* (Tính năng này sẽ được phát triển sau) */}
-            </p>
+
+            {ordersLoading ? (
+              <p>Đang tải đơn hàng...</p>
+            ) : orders.length === 0 ? (
+              <div className={styles.emptyOrder}>
+                <p>Bạn chưa có đơn hàng nào.</p>
+                <button onClick={() => navigate('/')}>Mua sắm ngay</button>
+              </div>
+            ) : (
+              <div className={styles.orderList}>
+                {orders.map((order) => (
+                  <div key={order._id} className={styles.orderCard}>
+                    {/* HEADER */}
+                    <div className={styles.orderHeader}>
+                      <div className={styles.orderId}>
+                        Mã đơn: <strong>{order.orderCode || order._id}</strong>
+                        <div style={{ fontSize: '0.85rem', color: '#777' }}>
+                          Ngày đặt: {formatDate(order.createdAt)}
+                        </div>
+                      </div>
+                      <div className={`${styles.status} ${statusClass(order)}`}>
+                        {renderStatusText(order)}
+                      </div>
+                    </div>
+
+                    {/* BODY */}
+                    <div className={styles.orderBody}>
+                      <div className={styles.orderInfo}>
+                        <p>
+                          Phương thức:{' '}
+                          <strong>
+                            {order.paymentMethod === 'bank' ? 'VNPAY' : 'COD'}
+                          </strong>
+                        </p>
+                        <p>
+                          Thanh toán:{' '}
+                          <strong>{renderPaymentText(order)}</strong>
+                        </p>
+                        <p className={styles.total}>
+                          Tổng: {formatPrice(order.total)}
+                        </p>
+                      </div>
+
+                      {canPayNow(order) && (
+                        <button
+                          type="button"
+                          onClick={() => handlePayOrder(order)}
+                          className={styles.payNowButton}
+                        >
+                          Thanh toán ngay
+                        </button>
+                      )}
+                    </div>
+
+                    {/* LIST SẢN PHẨM TRONG ĐƠN */}
+                    {order.items && order.items.length > 0 && (
+                      <div className={styles.orderItems}>
+                        {order.items.map((item) => {
+                          const imgSrc = item.image
+                            ? getImageUrl(item.image)
+                            : '/assets/images/placeholder.png';
+                          return (
+                            <div
+                              key={`${item.productId}-${item.color}-${item.size}`}
+                              className={styles.orderItem}
+                            >
+                              <img
+                                src={imgSrc}
+                                alt={item.name}
+                                className={styles.orderItemImage}
+                              />
+                              <div className={styles.orderItemInfo}>
+                                <p>{item.name}</p>
+                                <span>
+                                  {item.color} / {item.size} x {item.quantity}
+                                </span>
+                              </div>
+                              <div className={styles.orderItemPrice}>
+                                {formatPrice(item.price * item.quantity)}
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         );
+
       case 'password':
         return (
           <div className={styles.formContainer}>
@@ -187,7 +388,7 @@ const ProfilePage = () => {
                     value={passwordData.newPassword}
                     onChange={(e) => setPasswordData({ ...passwordData, newPassword: e.target.value })}
                     required
-                    placeholder='Tối thiểu 6 ký tự'
+                    placeholder="Tối thiểu 6 ký tự"
                   />
                 </div>
               </div>
@@ -210,19 +411,14 @@ const ProfilePage = () => {
             </form>
           </div>
         );
+
       default:
         return null;
     }
   };
 
   return (
-    // --- BƯỚC 2: TRUYỀN "pageTitle" CHO PAGELAYOUT ---
-    // PageLayout sẽ tự tạo breadcrumb "Trang chủ / Tài khoản"
-    <PageLayout pageTitle="Tài khoản"> 
-      
-      {/* --- BƯỚC 3: XÓA BREADCRUMB THỨ HAI BỊ TRÙNG --- */}
-      {/* <Breadcrumb paths={[{ name: 'Trang chủ', link: '/' }, { name: 'Tài khoản' }]} /> */}
-      
+    <PageLayout pageTitle="Tài khoản">
       <div className={styles.profilePage}>
         <nav className={styles.sidebar}>
           <div className={styles.welcome}>

@@ -8,12 +8,18 @@ const PromotionSchema = new Schema(
       required: true,
       unique: true,
       trim: true,
+      uppercase: true
+    },
+    
+    description: {
+      type: String,
+      trim: true
     },
 
     type: {
       type: String,
       required: true,
-      enum: ['percent', 'fixed'],
+      enum: ['percent', 'fixed', 'shipping'], 
     },
 
     value: {
@@ -28,6 +34,12 @@ const PromotionSchema = new Schema(
       min: 0,
     },
 
+    maxDiscount: {
+      type: Number,
+      default: 0,
+      min: 0
+    },
+
     maxUses: {
       type: Number,
       default: null,
@@ -36,7 +48,7 @@ const PromotionSchema = new Schema(
 
     maxUsesPerUser: {
       type: Number,
-      default: null,
+      default: 1,
       min: 0,
     },
 
@@ -53,7 +65,7 @@ const PromotionSchema = new Schema(
 
     startDate: {
       type: Date,
-      required: true,
+      default: Date.now,
     },
 
     endDate: {
@@ -70,8 +82,6 @@ const PromotionSchema = new Schema(
     timestamps: { createdAt: 'createAt', updatedAt: 'updateAt' },
   }
 );
-
-// PromotionSchema.index({ code: 1 }, { unique: true });
 
 PromotionSchema.index({ isActive: 1, startDate: 1, endDate: 1 });
 

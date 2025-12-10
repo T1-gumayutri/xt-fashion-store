@@ -1,26 +1,27 @@
 import React from "react";
 import { useAuth } from "../../../contexts/AuthContext";
-import { Navigate, Outlet } from "react-router-dom";
+import { Navigate, Outlet, useLocation } from "react-router-dom"; 
 
 const ProtectedRoute = ({ requiredRole }) => {
   const { user, loading } = useAuth(); 
+  const location = useLocation();
 
-  // ⏳ Trong khi AuthContext đang đọc localStorage, chưa biết có user hay không
   if (loading) {
-    return null; 
+    return (
+      <div style={{ height: "100vh", display: "flex", justifyContent: "center", alignItems: "center" }}>
+        <p>Đang kiểm tra đăng nhập...</p>
+      </div>
+    ); 
   }
 
-  // ❌ Nếu chưa đăng nhập
   if (!user) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  // ❌ Nếu route yêu cầu role cụ thể mà user không khớp
   if (requiredRole && user.role !== requiredRole) {
     return <Navigate to="/" replace />;
   }
 
-  // ✅ Nếu đã đăng nhập và role hợp lệ
   return <Outlet />;
 };
 

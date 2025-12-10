@@ -76,6 +76,11 @@ const OrderSchema = new Schema({
     enum: ['pending', 'processing', 'shipped', 'delivered', 'cancelled'],
     default: 'pending'
   },
+  paymentStatus: {
+  type: String,
+  enum: ['unpaid', 'paid', 'failed', 'expired', 'refunded'],
+  default: 'unpaid'
+},
   isPaid: {
     type: Boolean,
     required: true,

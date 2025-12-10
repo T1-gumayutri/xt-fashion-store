@@ -32,6 +32,7 @@ import AdminPage from './pages/AdminPage/AdminPage';
 import Dashboard from './pages/AdminPage/Dashboard/Dashboard';
 import AdminProducts from './pages/AdminPage/AdminProducts/AdminProducts';
 import AdminOrders from './pages/AdminPage/AdminOrders/AdminOrders';
+import AdminOrderDetail from './pages/AdminPage/AdminOrders/AdminOrderDetail';
 import AdminUsers from './pages/AdminPage/AdminUsers/AdminUsers';
 import AdminPromotions from './pages/AdminPage/AdminPromotions/AdminPromotions';
 import AdminReviews from "./pages/AdminPage/AdminReviews/AdminReviews";
@@ -96,6 +97,7 @@ function App() {
                     <Route path="users" element={<AdminUsers />} />
                     <Route path="products" element={<AdminProducts />} />
                     <Route path="orders" element={<AdminOrders />} />
+                    <Route path="orders/:id" element={<AdminOrderDetail />} />
                     <Route path="promotions" element={<AdminPromotions />} />
                     <Route path="reviews" element={<AdminReviews />} />
                   </Route>

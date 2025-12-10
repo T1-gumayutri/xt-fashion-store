@@ -1,12 +1,14 @@
-.checkoutContainer {
+/* Container tổng */
+.container {
   max-width: 1100px;
   margin: 40px auto;
   padding: 0 15px;
 }
 
+/* Grid 2 cột: thông tin & tóm tắt */
 .checkoutGrid {
   display: grid;
-  grid-template-columns: 1.2fr 1fr; // Cột thông tin rộng hơn
+  grid-template-columns: 1.2fr 1fr;
   gap: 40px;
 
   @media (max-width: 992px) {
@@ -23,7 +25,7 @@
   }
 }
 
-// Bọc input và lỗi
+/* Bọc input + lỗi (nếu sau này bạn dùng) */
 .inputGroup {
   margin-bottom: 15px;
 }
@@ -31,24 +33,14 @@
 .inputField {
   width: 100%;
   padding: 12px;
-  // margin-bottom: 15px; // Bỏ margin này vì đã có ở .inputGroup
   border: 1px solid #ddd;
   border-radius: 4px;
   font-size: 1rem;
 
-  // Style khi input bị lỗi
   &.inputError {
     border-color: #c92127;
     background-color: #fff8f8;
   }
-}
-
-// Style cho thông báo lỗi
-.errorMessage {
-  color: #c92127;
-  font-size: 0.85rem;
-  margin-top: 4px;
-  display: block;
 }
 
 textarea.inputField {
@@ -56,34 +48,212 @@ textarea.inputField {
   resize: vertical;
 }
 
-// --- Payment Method ---
+/* Thông báo lỗi */
+.errorMessage {
+  color: #c92127;
+  font-size: 0.85rem;
+  margin-top: 4px;
+  display: block;
+}
+
+/* --- PHẦN ĐỊA CHỈ --- */
+.sectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 15px;
+
+  h2 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+}
+
+.addAddressBtn {
+  background: none;
+  border: 1px solid #007bff;
+  color: #007bff;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: all 0.2s;
+
+  &:hover {
+    background: #e6f0ff;
+  }
+}
+
+/* Form thêm địa chỉ */
+.newAddressForm {
+  background: #f8f9fa;
+  padding: 20px;
+  border-radius: 8px;
+  border: 1px dashed #ccc;
+  margin-bottom: 20px;
+
+  input {
+    width: 100%;
+    padding: 10px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    margin-bottom: 10px;
+  }
+}
+
+.formRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 15px;
+  margin-bottom: 10px;
+}
+
+.formRowThree {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.formActions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.saveBtn {
+  padding: 8px 20px;
+  background: #222;
+  color: #fff;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.cancelBtn {
+  padding: 8px 20px;
+  background: #fff;
+  border: 1px solid #ccc;
+  color: #555;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+/* Danh sách địa chỉ */
+.addressList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.addressCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  background: #fff;
+}
+
+.addressCard:hover {
+  border-color: #999;
+}
+
+.selected {
+  border-color: #007bff;
+  background-color: #f0f8ff;
+  box-shadow: 0 2px 8px rgba(0, 123, 255, 0.1);
+}
+
+.radioCol {
+  padding-top: 3px;
+}
+
+.infoCol {
+  flex-grow: 1;
+}
+
+.nameRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 5px;
+
+  strong {
+    font-size: 1rem;
+    color: #222;
+  }
+
+  span {
+    color: #666;
+    font-size: 0.9rem;
+  }
+}
+
+.addrText {
+  margin: 0;
+  color: #555;
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.defaultTag {
+  font-size: 0.75rem;
+  color: #007bff;
+  border: 1px solid #007bff;
+  padding: 1px 6px;
+  border-radius: 3px;
+  margin-left: auto;
+}
+
+/* --- PHƯƠNG THỨC THANH TOÁN --- */
 .paymentTitle {
   margin-top: 30px;
 }
+
 .paymentOptions {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
+
 .paymentOption {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   padding: 15px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1px solid #eee;
+  border-radius: 6px;
   cursor: pointer;
+  transition: all 0.2s;
+}
 
-  input[type="radio"] {
-    width: 18px;
-    height: 18px;
-  }
+.paymentOption input[type='radio'] {
+  width: 18px;
+  height: 18px;
+}
 
-  .paymentIcon {
-    width: 32px; // Kích thước icon
-    height: 32px;
-    object-fit: contain;
-  }
+.paymentOption span {
+  font-weight: 500;
+  color: #333;
+}
+
+.paymentIcon {
+  height: 30px;
+  width: auto;
+  object-fit: contain;
+}
+
+.active {
+  border-color: #007bff;
+  background-color: #fcfcfc;
 }
 
 /* Cột tóm tắt đơn hàng */
@@ -94,7 +264,7 @@ textarea.inputField {
   height: fit-content;
 
   @media (max-width: 992px) {
-    margin-top: 20px; // Thêm khoảng cách trên mobile
+    margin-top: 20px;
   }
 
   h2 {
@@ -115,103 +285,107 @@ textarea.inputField {
   align-items: center;
   gap: 15px;
   margin-bottom: 15px;
+}
 
-  img {
-    width: 60px;
-    height: 75px;
-    object-fit: cover;
-    border-radius: 4px;
-  }
+.summaryItem img {
+  width: 60px;
+  height: 75px;
+  object-fit: cover;
+  border-radius: 4px;
+}
 
-  .itemInfo {
-    flex-grow: 1;
-    font-size: 0.9rem;
-    p { margin: 0 0 5px; font-weight: 500; }
-    span { color: #888; display: block; } // Cho xuống hàng
-  }
+.itemInfo {
+  flex-grow: 1;
+  font-size: 0.9rem;
+}
 
-  .itemPrice {
-    font-weight: 500;
-  }
+.itemInfo p {
+  margin: 0 0 5px;
+  font-weight: 500;
+}
+
+.itemInfo span {
+  color: #888;
+  display: block;
+}
+
+.itemPrice {
+  font-weight: 500;
 }
 
 .emptyMessage {
   text-align: center;
   padding: 20px 0;
   color: #888;
-  a {
-    color: #c92127;
-    font-weight: 500;
-  }
 }
 
+/* Mã giảm giá */
 .promoCode {
   display: flex;
   margin-bottom: 20px;
-
-  input {
-    flex-grow: 1;
-    padding: 10px;
-    border: 1px solid #ddd;
-    border-right: none;
-    border-radius: 4px 0 0 4px;
-  }
-  
-  button {
-    padding: 10px 20px;
-    border: 1px solid #222;
-    background-color: #f8f8f8;
-    cursor: pointer;
-    font-weight: 500;
-    border-radius: 0 4px 4px 0;
-    white-space: nowrap; // Thêm
-  }
 }
 
-// --- STYLE MỚI CHO MÃ ĐÃ ÁP DỤNG ---
+.promoCode input {
+  flex-grow: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-right: none;
+  border-radius: 4px 0 0 4px;
+}
+
+.promoCode button {
+  padding: 10px 20px;
+  border: 1px solid #222;
+  background-color: #f8f8f8;
+  cursor: pointer;
+  font-weight: 500;
+  border-radius: 0 4px 4px 0;
+  white-space: nowrap;
+}
+
+/* Mã đã áp dụng */
 .appliedPromo {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  background-color: #e6f7ec; // Màu xanh lá nhạt
+  background-color: #e6f7ec;
   border: 1px solid #b7ebc9;
   padding: 10px;
   border-radius: 4px;
   margin-bottom: 20px;
   font-size: 0.9rem;
+}
 
-  span {
-    color: #0f5132; // Màu xanh lá đậm
-  }
+.appliedPromo span {
+  color: #0f5132;
 }
 
 .removePromoBtn {
   background: none;
   border: none;
-  color: #c92127; // Màu đỏ
+  color: #c92127;
   font-weight: 600;
   cursor: pointer;
   font-size: 0.9rem;
 }
-// ------------------------------------
 
+/* Tính tiền */
 .calculation {
   border-top: 1px solid #ddd;
   padding-top: 20px;
 }
 
-.calcRow, .calcTotal {
+.calcRow,
+.calcTotal {
   display: flex;
   justify-content: space-between;
   margin-bottom: 10px;
 }
 
-// --- STYLE MỚI CHO DÒNG GIẢM GIÁ ---
 .discountRow {
   color: #c92127;
   font-weight: 500;
 }
-// -----------------------------------
 
 .calcTotal {
   font-size: 1.2rem;
@@ -223,6 +397,7 @@ textarea.inputField {
   color: #c92127;
 }
 
+/* Nút đặt hàng */
 .placeOrderButton {
   width: 100%;
   padding: 14px;
@@ -236,8 +411,8 @@ textarea.inputField {
   text-transform: uppercase;
   margin-top: 20px;
   transition: background-color 0.3s ease;
+}
 
-  &:hover {
-    background-color: #a11a20;
-  }
+.placeOrderButton:hover {
+  background-color: #a11a20;
 }

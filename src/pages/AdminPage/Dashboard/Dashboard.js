@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import styles from "./Dashboard.module.scss";
 import {
   LineChart,
@@ -10,99 +10,208 @@ import {
   CartesianGrid,
 } from "recharts";
 
+// Import API & Context
+import analyticsApi from "../../../api/analyticsApi";
+import { useAuth } from "../../../contexts/AuthContext";
+
 const Dashboard = () => {
-  // Dữ liệu KPI
-  const kpi = [
-    { title: "Doanh thu hôm nay", value: "4.230.000₫", delta: "+12%" },
-    { title: "Đơn hàng mới", value: "52", delta: "+8%" },
-    { title: "Khách hàng mới", value: "31", delta: "+5%" },
-    { title: "Tỷ lệ hoàn hàng", value: "2.1%", delta: "-0.5%" },
+  const { token } = useAuth();
+  const [loading, setLoading] = useState(true);
+
+  // State lưu dữ liệu
+  const [kpiData, setKpiData] = useState({
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalUsers: 0,
+    avgOrderValue: 0
+  });
+  const [chartData, setChartData] = useState([]);
+  const [topProducts, setTopProducts] = useState([]);
+
+  const formatCurrency = (amount) => {
+    return new Intl.NumberFormat("vi-VN", { style: "currency", currency: "VND" }).format(amount);
+  };
+
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setLoading(true);
+        // Gọi song song 3 API
+        const [resKpi, resRevenue, resTopProd] = await Promise.all([
+          analyticsApi.getKpis(token),
+          analyticsApi.getRevenue('month', token),
+          analyticsApi.getTopProducts(token)
+        ]);
+
+        // 1. KPI
+        setKpiData({
+            totalRevenue: resKpi.data.totalRevenue,
+            totalOrders: resKpi.data.totalOrders,
+            totalUsers: resKpi.data.totalCustomers,
+            avgOrderValue: resKpi.data.avgOrderValue
+        });
+
+        // 2. Chart
+        const formattedChart = resRevenue.data.data.map(item => ({
+            month: `Th${item._id.m}`, 
+            revenue: item.revenue
+        }));
+        setChartData(formattedChart);
+
+        // 3. Top Products
+        setTopProducts(resTopProd.data.items);
+
+      } catch (error) {
+        console.error("Lỗi tải dashboard:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (token) fetchData();
+  }, [token]);
+
+  // List KPI để map ra giao diện
+  const kpiList = [
+    { 
+      title: "DOANH THU", 
+      value: formatCurrency(kpiData.totalRevenue), 
+      delta: "+12%", 
+      isPositive: true 
+    },
+    { 
+      title: "ĐƠN HÀNG", 
+      value: kpiData.totalOrders, 
+      delta: "+5%", 
+      isPositive: true 
+    },
+    { 
+      title: "KHÁCH HÀNG MỚI", 
+      value: kpiData.totalUsers, 
+      delta: "+2%", 
+      isPositive: true 
+    },
+    { 
+      title: "GIÁ TRỊ TB/ĐƠN", 
+      value: formatCurrency(kpiData.avgOrderValue), 
+      delta: "-1%", 
+      isPositive: false 
+    },
   ];
 
-  // Dữ liệu biểu đồ doanh thu 6 tháng
-  const chartData = [
-    { month: "Th1", revenue: 8000 },
-    { month: "Th2", revenue: 10500 },
-    { month: "Th3", revenue: 9500 },
-    { month: "Th4", revenue: 12500 },
-    { month: "Th5", revenue: 13200 },
-    { month: "Th6", revenue: 15000 },
-  ];
-
-  // Dữ liệu Top sản phẩm bán chạy
-  const topProducts = [
-    { id: 1, name: "Áo Polo Cotton", sold: 320, revenue: 3500000 },
-    { id: 2, name: "Quần Jeans Slim Fit", sold: 210, revenue: 4200000 },
-    { id: 3, name: "Áo Khoác Gió Nam", sold: 185, revenue: 5600000 },
-  ];
+  if (loading) return <div style={{padding: '24px'}}>Đang tải dữ liệu...</div>;
 
   return (
     <div className={styles.dashboard}>
-      <h2>📊 Dashboard Tổng quan</h2>
+      <h2>Dashboard Tổng quan</h2>
 
-      {/* KPI Cards */}
+      {/* 1. KPI Cards */}
       <div className={styles.cardGrid}>
-        {kpi.map((item, index) => (
+        {kpiList.map((item, index) => (
           <div key={index} className={styles.card}>
-            <div style={{ fontSize: 13, color: "#6b7280" }}>{item.title}</div>
-            <div style={{ fontSize: 26, fontWeight: 700 }}>{item.value}</div>
-            <div
-              style={{
-                fontSize: 13,
-                color: item.delta.startsWith("-") ? "#ef4444" : "#16a34a",
-              }}
-            >
-              {item.delta}
+            <div className={styles.subTitle}>{item.title}</div>
+            <div style={{ fontSize: 26, fontWeight: 700, color: '#0f172a' }}>
+                {item.value}
+            </div>
+            {/* Class động dựa trên tăng/giảm */}
+            <div className={item.isPositive ? styles.positive : styles.negative}>
+              {item.delta} <span style={{fontWeight: 400, color: '#64748b', fontSize: 13}}>so với tháng trước</span>
             </div>
           </div>
         ))}
       </div>
 
-      {/* Biểu đồ doanh thu */}
+      {/* 2. Biểu đồ & Bảng */}
       <div className={styles.section}>
+        
+        {/* Biểu đồ doanh thu */}
         <div className={styles.card}>
           <h3>Doanh thu 6 tháng gần nhất</h3>
           <div style={{ height: 300, marginTop: 10 }}>
-            <ResponsiveContainer width="100%" height="100%">
-              <LineChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
-                <YAxis />
-                <Tooltip />
-                <Line
-                  type="monotone"
-                  dataKey="revenue"
-                  stroke="#4f46e5"
-                  strokeWidth={2}
-                  dot={{ r: 4 }}
-                />
-              </LineChart>
-            </ResponsiveContainer>
+            {chartData.length > 0 ? (
+                <ResponsiveContainer width="100%" height="100%">
+                    <LineChart data={chartData}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#eef2f7" />
+                        <XAxis 
+                            dataKey="month" 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{fill: '#64748b', fontSize: 12}} 
+                            dy={10}
+                        />
+                        <YAxis 
+                            axisLine={false} 
+                            tickLine={false} 
+                            tick={{fill: '#64748b', fontSize: 12}} 
+                            tickFormatter={(value) => new Intl.NumberFormat('en', { notation: "compact" }).format(value)}
+                        />
+                        <Tooltip 
+                            formatter={(value) => formatCurrency(value)}
+                            contentStyle={{borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)'}}
+                        />
+                        <Line
+                            type="monotone"
+                            dataKey="revenue"
+                            stroke="#4f46e5"
+                            strokeWidth={3}
+                            dot={{ r: 4, fill: '#4f46e5', strokeWidth: 2, stroke: '#fff' }}
+                            activeDot={{ r: 6 }}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
+            ) : (
+                <div style={{display:'flex', alignItems:'center', justifyContent:'center', height: '100%', color: '#999'}}>
+                    Chưa có dữ liệu
+                </div>
+            )}
           </div>
         </div>
 
-        {/* Bảng sản phẩm bán chạy */}
+        {/* Bảng Top Sản Phẩm */}
         <div className={styles.card}>
           <h3>Top sản phẩm bán chạy</h3>
-          <table className={styles.table} style={{ marginTop: 10 }}>
-            <thead>
-              <tr>
-                <th>Sản phẩm</th>
-                <th>Đã bán</th>
-                <th>Doanh thu</th>
-              </tr>
-            </thead>
-            <tbody>
-              {topProducts.map((p) => (
-                <tr key={p.id}>
-                  <td>{p.name}</td>
-                  <td>{p.sold}</td>
-                  <td>{p.revenue.toLocaleString("vi-VN")}₫</td>
+          <div style={{overflowX: 'auto'}}>
+            <table className={styles.table}>
+                <thead>
+                <tr>
+                    <th>Sản phẩm</th>
+                    <th style={{textAlign: 'center'}}>Đã bán</th>
+                    <th style={{textAlign: 'right'}}>Doanh thu</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                {topProducts.length > 0 ? (
+                    topProducts.map((p, index) => (
+                        <tr key={index}>
+                            <td>
+                                <div style={{display: 'flex', alignItems: 'center', gap: '12px'}}>
+                                    {/* Ảnh nhỏ */}
+                                    <img 
+                                        src={p.img ? (p.img.url.startsWith('http') ? p.img.url : `http://localhost:5000${p.img.url}`) : 'https://via.placeholder.com/40'} 
+                                        alt="" 
+                                        style={{width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px'}}
+                                    />
+                                    <span style={{fontWeight: 500, color: '#0f172a'}}>
+                                        {p.productName}
+                                    </span>
+                                </div>
+                            </td>
+                            <td style={{textAlign: 'center', fontWeight: 600}}>
+                                {p.quantity}
+                            </td>
+                            <td style={{textAlign: 'right', fontWeight: 600, color: '#0f172a'}}>
+                                {formatCurrency(p.revenue)}
+                            </td>
+                        </tr>
+                    ))
+                ) : (
+                    <tr><td colSpan="3" style={{textAlign:'center', padding: 20}}>Chưa có dữ liệu bán hàng</td></tr>
+                )}
+                </tbody>
+            </table>
+          </div>
         </div>
+
       </div>
     </div>
   );

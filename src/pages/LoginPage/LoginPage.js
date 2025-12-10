@@ -4,7 +4,6 @@ import Header from '../../components/layout/Header/Header';
 import Footer from '../../components/layout/Footer/Footer';
 import LoginForm from '../../components/auth/LoginForm/LoginForm';
 import RegisterForm from '../../components/auth/RegisterForm/RegisterForm';
-// --- IMPORT THE BANNER COMPONENT ---
 import BrandShowcase from '../../components/homepage/BrandShowcase/BrandShowcase';
 
 const LoginPage = () => {
@@ -32,7 +31,6 @@ const LoginPage = () => {
           {activeTab === 'login' ? <LoginForm /> : <RegisterForm />}
         </div>
       </div>
-      {/* --- ADD THE BANNER HERE, ABOVE THE FOOTER --- */}
       <BrandShowcase />
       <Footer />
     </>

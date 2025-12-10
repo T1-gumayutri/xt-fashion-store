@@ -33,7 +33,7 @@ const ProductSection = ({ title, mainPath, products, subCategories, activeFilter
 
       <div className={styles.grid}>
         {products.map((product) => (
-          <ProductCard key={product.id} product={product} />
+          <ProductCard key={product._id || product.id} product={product} />
         ))}
       </div>
 

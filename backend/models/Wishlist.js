@@ -2,29 +2,20 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 
 const WishlistSchema = new Schema({
-  userId: {
+  user: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
-    index: true,
-    unique: true
+    unique: true,
+    index: true
   },
-  items: [
+  products: [
     {
       type: Schema.Types.ObjectId,
       ref: 'Product'
     }
-  ],
-  isDefault: {
-    type: Boolean,
-    default: true
-  }
+  ]
 }, { timestamps: true });
-
-WishlistSchema.index(
-  { userId: 1, isDefault: 1 },
-  { unique: true, partialFilterExpression: { isDefault: true } }
-);
 
 WishlistSchema.set('toJSON', {
   virtuals: true,

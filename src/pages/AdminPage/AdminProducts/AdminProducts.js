@@ -1,675 +1,580 @@
-import React, { useState, useMemo, useEffect } from "react";
-import axios from "axios";
-import styles from "./AdminProducts.module.scss";
+import React, { useState, useEffect } from "react";
+import { toast } from "react-toastify";
 import {
   FiSearch,
   FiPlus,
   FiEdit2,
   FiTrash2,
-  FiChevronLeft,
-  FiChevronRight,
+  FiX,
+  FiUpload,
 } from "react-icons/fi";
-import { useAuth } from "../../../contexts/AuthContext"; 
 
-const API_BASE = "http://localhost:5000/api";
+import productApi from "../../../api/productApi";
+import categoryApi from "../../../api/categoryApi";
+import uploadApi from "../../../api/uploadApi";
+import { getImageUrl } from "../../../utils/imageHelper";
+import { useAuth } from "../../../contexts/AuthContext";
 
-export default function AdminProducts() {
-  const [rows, setRows] = useState([]);            
+import styles from "./AdminProducts.module.scss";
+
+const initialFormState = {
+  productName: "",
+  categoryId: "",
+  subCategory: "",
+  price: 0,
+  description: "",
+  fullDescription: "",
+  img: [],
+  variants: [],
+  isDefault: true,
+  inventory: 0,
+};
+
+const AdminProducts = () => {
+  const { token, user } = useAuth();
+
+  const [products, setProducts] = useState([]);
   const [categories, setCategories] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [loading, setLoading] = useState(true);
+  const [imageUrlInput, setImageUrlInput] = useState("");
 
-  // filter / sort / page
-  const [query, setQuery] = useState("");
-  const [category, setCategory] = useState("all");
-  const [status, setStatus] = useState("all");
-  const [sortKey, setSortKey] = useState("createdAt");
-  const [sortDir, setSortDir] = useState("desc");
-  const [page, setPage] = useState(1);
-  const PAGE_SIZE = 5;
+  // Filter & Search
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedCategory, setSelectedCategory] = useState("All");
 
-  // modal thêm / sửa
-  const [modalProduct, setModalProduct] = useState(null); 
-  const [modalMode, setModalMode] = useState(null);      
+  // Modal State
+  const [showModal, setShowModal] = useState(false);
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [formData, setFormData] = useState(initialFormState);
+  const [uploading, setUploading] = useState(false);
 
-  const statuses = ["all", "active", "out"];
-
-  const { token } = useAuth();  
-
-  // Hàm map document DB -> object dùng trong UI
-  const mapProduct = (p) => ({
-    id: p._id,
-    code: p.code,
-    name: p.name,
-    category: p.category,
-    subCategory: p.subCategory,
-    price: p.price,
-    stock: p.stock,
-    status: p.status,
-    images: p.images || [],
-    inventory: p.inventory || [],
-    fullDescription: p.fullDescription || "",
-    createdAt: p.createdAt ? p.createdAt.slice(0, 10) : "",
-  });
-
-  // Load products + categories từ backend
+  // ===== 1. LOAD DATA =====
   useEffect(() => {
     const fetchData = async () => {
       try {
-        setLoading(true);
-        setError("");
-        const [prodRes, catRes] = await Promise.all([
-          axios.get(`${API_BASE}/products`, {
-            headers: {
-              Authorization: `Bearer ${token || ""}`,     
-            },
-          }),
-          axios.get(`${API_BASE}/categories`, {
-            headers: {
-              Authorization: `Bearer ${token || ""}`,     
-            },
-          }),
+        const [resProd, resCat] = await Promise.all([
+          productApi.getAll({ limit: 1000 }),
+          categoryApi.getAll(),
         ]);
 
-        setRows(prodRes.data.map(mapProduct));
-        setCategories(catRes.data); // [{_id, categoryName, slug}]
-      } catch (err) {
-        console.error(err);
-        setError("Không tải được dữ liệu sản phẩm / danh mục.");
+        const prodRaw = resProd.data?.products || [];
+
+        const mappedProducts = prodRaw.map((p) => ({
+          ...p,
+          id: p.id || p._id,
+          categoryId:
+            p.categoryId?._id || p.categoryId?.id || p.categoryId || "",
+        }));
+
+        const catRaw = resCat.data || [];
+        const mappedCats = catRaw.map((c) => ({
+          ...c,
+          id: c.id || c._id,
+        }));
+
+        setProducts(mappedProducts);
+        setCategories(mappedCats);
+      } catch (error) {
+        console.error(error);
+        toast.error("Lỗi tải dữ liệu sản phẩm / danh mục");
       } finally {
         setLoading(false);
       }
     };
-
     fetchData();
-  }, [token]);
+  }, []);
 
-  // Danh sách tên category để filter / chọn trong modal
-  const categoryOptions = useMemo(
-    () => ["all", ...categories.map((c) => c.categoryName)],
-    [categories]
-  );
+  // ===== 2. UPLOAD ẢNH =====
+  const handleUpload = async (e) => {
+    const files = e.target.files;
+    if (!files || files.length === 0) return;
 
-  const statusLabel = (s) => (s === "active" ? "Đang bán" : "Hết hàng");
-
-  const filtered = useMemo(() => {
-    let data = [...rows];
-
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      data = data.filter((r) => r.name.toLowerCase().includes(q));
+    if (!token || user?.role !== "admin") {
+      toast.error("Bạn không có quyền upload ảnh (cần admin)");
+      return;
     }
 
-    if (category !== "all") {
-      data = data.filter((r) => r.category === category);
+    const uploadData = new FormData();
+    for (let i = 0; i < files.length; i++) {
+      uploadData.append("images", files[i]);
     }
 
-    if (status !== "all") {
-      data = data.filter((r) => r.status === status);
-    }
-
-    // sort
-    data.sort((a, b) => {
-      let va = a[sortKey];
-      let vb = b[sortKey];
-      if (["createdAt", "price", "stock"].includes(sortKey)) {
-        if (sortKey === "createdAt") {
-          va = new Date(a.createdAt).getTime();
-          vb = new Date(b.createdAt).getTime();
-        }
-      } else {
-        va = String(va).toLowerCase();
-        vb = String(vb).toLowerCase();
-      }
-      if (va < vb) return sortDir === "asc" ? -1 : 1;
-      if (va > vb) return sortDir === "asc" ? 1 : -1;
-      return 0;
-    });
-
-    return data;
-  }, [rows, query, category, status, sortKey, sortDir]);
-
-  const totalPages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE));
-  const paginated = useMemo(() => {
-    const start = (page - 1) * PAGE_SIZE;
-    return filtered.slice(start, start + PAGE_SIZE);
-  }, [filtered, page]);
-
-  const handleSort = (key) => {
-    if (sortKey === key) {
-      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
-    } else {
-      setSortKey(key);
-      setSortDir("asc");
-    }
-  };
-
-  // mở modal thêm
-  const handleAdd = () => {
-    const today = new Date().toISOString().slice(0, 10);
-    setModalMode("add");
-    setModalProduct({
-      id: null,
-      code: "",
-      name: "",
-      category: categoryOptions.find((c) => c !== "all") || "",
-      subCategory: "",
-      price: 0,
-      stock: 0,
-      status: "active",
-      images: [],
-      inventory: [
-        { color: "", colorHex: "#000000", sizes: [] },
-      ],
-      fullDescription: "",
-      createdAt: today,
-    });
-  };
-
-  // mở modal sửa
-  const handleEdit = (id) => {
-    const prod = rows.find((r) => r.id === id);
-    if (!prod) return;
-    setModalMode("edit");
-    setModalProduct({ ...prod });
-  };
-
-  // xoá sản phẩm trong DB
-  const handleDelete = async (id) => {
-    if (!window.confirm("Bạn có chắc muốn xóa sản phẩm này?")) return;
+    setUploading(true);
     try {
-      await axios.delete(`${API_BASE}/products/${id}`, {
-        headers: {
-          Authorization: `Bearer ${token}`,        
-        },
-      });
-      setRows((prev) => prev.filter((r) => r.id !== id));
-    } catch (err) {
-      console.error(err);
-      alert("Xóa sản phẩm thất bại.");
+      const res = await uploadApi.uploadImages(uploadData, token);
+      // backend: { images: [{ url, public_id }, ...] }
+      const newImages = res.data?.images || [];
+      setFormData((prev) => ({
+        ...prev,
+        img: [...prev.img, ...newImages],
+      }));
+      toast.success("Upload ảnh thành công");
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.msg || "Lỗi upload ảnh");
+    } finally {
+      setUploading(false);
     }
   };
 
-  // lưu thông tin trong modal (thêm / sửa)
-  const handleSaveModal = async () => {
-    if (!modalProduct) return;
+  // ===== 3. SUBMIT (THÊM / SỬA) =====
+  const handleSubmit = async (e) => {
+    e.preventDefault();
 
-    const payload = {
-      code: modalProduct.code,
-      name: modalProduct.name,
-      category: modalProduct.category,
-      subCategory: modalProduct.subCategory,
-      price: Number(modalProduct.price),
-      stock: Number(modalProduct.stock),
-      status: modalProduct.status,
-      images: modalProduct.images,
-      inventory: modalProduct.inventory,
-      fullDescription: modalProduct.fullDescription,
+    if (!token || user?.role !== "admin") {
+      toast.error("Bạn không có quyền thao tác sản phẩm (cần admin)");
+      return;
+    }
+
+    const payload = { ...formData };
+
+    if (payload.fullDescription) {
+        const plainText = payload.fullDescription.replace(/<[^>]+>/g, '');
+        payload.description = plainText.slice(0, 200) + (plainText.length > 200 ? '...' : '');
+    }
+
+    try {
+      if (isEditMode) {
+        await productApi.update(formData.id, formData, token);
+        toast.success("Cập nhật sản phẩm thành công");
+      } else {
+        await productApi.create(formData, token);
+        toast.success("Thêm mới sản phẩm thành công");
+      }
+
+      // Reload list
+      const res = await productApi.getAll({ limit: 1000 });
+      const prodRaw = res.data?.products || [];
+      const mappedProducts = prodRaw.map((p) => ({
+        ...p,
+        id: p.id || p._id,
+        categoryId:
+          p.categoryId?._id || p.categoryId?.id || p.categoryId || "",
+      }));
+      setProducts(mappedProducts);
+
+      setShowModal(false);
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.msg || "Có lỗi xảy ra khi lưu sản phẩm");
+    }
+  };
+
+  const handleAddFromUrl = () => {
+    if (!imageUrlInput.trim()) {
+        toast.warn("Vui lòng nhập đường dẫn ảnh!");
+        return;
+    }
+
+    const newImage = {
+        url: imageUrlInput.trim(),
+        public_id: null
     };
 
-    try {
-      if (modalMode === "add") {
-        const res = await axios.post(`${API_BASE}/products`, payload, {
-          headers: {
-            Authorization: `Bearer ${token}`,       
-          },
-        });
-        const created = mapProduct(res.data);
-        setRows((prev) => [created, ...prev]);
-        setPage(1);
-      } else if (modalMode === "edit") {
-        const res = await axios.put(
-          `${API_BASE}/products/${modalProduct.id}`,
-          payload,
-          {
-            headers: {
-              Authorization: `Bearer ${token}`,      
-            },
-          }
-        );
-        const updated = mapProduct(res.data);
-        setRows((prev) =>
-          prev.map((r) => (r.id === modalProduct.id ? updated : r))
-        );
-      }
+    setFormData(prev => ({
+        ...prev,
+        img: [...prev.img, newImage]
+    }));
 
-      setModalProduct(null);
-      setModalMode(null);
-    } catch (err) {
-      console.error(err);
-      alert("Lưu sản phẩm thất bại.");
+    setImageUrlInput("");
+    toast.success("Đã thêm ảnh từ link!");
+};
+
+  // ===== 4. XOÁ SẢN PHẨM =====
+  const handleDelete = async (id) => {
+    if (!window.confirm("Bạn chắc chắn muốn xóa sản phẩm này?")) return;
+
+    if (!token || user?.role !== "admin") {
+      toast.error("Bạn không có quyền xoá sản phẩm (cần admin)");
+      return;
+    }
+
+    try {
+      await productApi.remove(id, token);
+      setProducts((prev) => prev.filter((p) => p.id !== id));
+      toast.success("Đã xóa sản phẩm");
+    } catch (error) {
+      console.error(error);
+      toast.error(error.response?.data?.msg || "Lỗi khi xóa sản phẩm");
     }
   };
 
-  const closeModal = () => {
-    setModalProduct(null);
-    setModalMode(null);
+  // ===== MODAL HELPERS =====
+  const openAddModal = () => {
+    setFormData(initialFormState);
+    setIsEditMode(false);
+    setShowModal(true);
   };
 
-  const badge = (text, type) => (
-    <span className={`${styles.badge} ${styles[type]}`}>{text}</span>
-  );
+  const openEditModal = (product) => {
+    setFormData({
+      ...product,
+      id: product.id || product._id,
+      categoryId:
+        product.categoryId?._id ||
+        product.categoryId?.id ||
+        product.categoryId ||
+        "",
+      variants: product.variants || [],
+      img: product.img || [],
+    });
+    setIsEditMode(true);
+    setShowModal(true);
+  };
+
+  const removeImage = (index) => {
+    setFormData((prev) => ({
+      ...prev,
+      img: prev.img.filter((_, i) => i !== index),
+    }));
+  };
+
+  // ===== FILTER =====
+  const filteredProducts = products.filter((p) => {
+    const matchName = p.productName
+      ?.toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    const matchCat =
+      selectedCategory === "All" ||
+      p.categoryId?.toString() === selectedCategory;
+    return matchName && matchCat;
+  });
+
+  if (loading) return <div className={styles.loading}>Đang tải...</div>;
 
   return (
-    <div className={styles.adminProducts}>
-      <h2>Quản lý sản phẩm</h2>
-
-      {/* Thông báo lỗi / loading */}
-      {error && <div className={styles.error}>{error}</div>}
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h2>Quản lý Sản phẩm</h2>
+        <button className={styles.addBtn} onClick={openAddModal}>
+          <FiPlus /> Thêm mới
+        </button>
+      </div>
 
       {/* Toolbar */}
       <div className={styles.toolbar}>
         <div className={styles.searchBox}>
           <FiSearch />
           <input
-            placeholder="Tìm theo tên sản phẩm…"
-            value={query}
-            onChange={(e) => {
-              setQuery(e.target.value);
-              setPage(1);
-            }}
+            placeholder="Tìm kiếm sản phẩm..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
-
-        <div className={styles.filterBox}>
-          <label>Danh mục</label>
-          <select
-            value={category}
-            onChange={(e) => {
-              setCategory(e.target.value);
-              setPage(1);
-            }}
-          >
-            {categoryOptions.map((c) => (
-              <option key={c}>{c}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className={styles.filterBox}>
-          <label>Trạng thái</label>
-          <select
-            value={status}
-            onChange={(e) => {
-              setStatus(e.target.value);
-              setPage(1);
-            }}
-          >
-            {statuses.map((s) => (
-              <option key={s} value={s}>
-                {s === "all" ? "Tất cả" : statusLabel(s)}
-              </option>
-            ))}
-          </select>
-        </div>
-
-        <button className={styles.addBtn} onClick={handleAdd}>
-          <FiPlus /> Thêm sản phẩm
-        </button>
+        <select
+          className={styles.catFilter}
+          value={selectedCategory}
+          onChange={(e) => setSelectedCategory(e.target.value)}
+        >
+          <option value="All">Tất cả danh mục</option>
+          {categories.map((c) => (
+            <option key={c.id} value={c.id}>
+              {c.name}
+            </option>
+          ))}
+        </select>
       </div>
 
-      {/* Table */}
-      <table className={styles.table}>
-        <thead>
-          <tr>
-            <th style={{ width: 60 }}>STT</th>
-            <th onClick={() => handleSort("name")}>Sản phẩm</th>
-            <th onClick={() => handleSort("category")}>Danh mục</th>
-            <th onClick={() => handleSort("price")}>Giá</th>
-            <th onClick={() => handleSort("stock")}>Tồn kho</th>
-            <th onClick={() => handleSort("status")}>Trạng thái</th>
-            <th onClick={() => handleSort("createdAt")}>Ngày thêm</th>
-            <th style={{ width: 150, textAlign: "right" }}>Hành động</th>
-          </tr>
-        </thead>
-        <tbody>
-          {loading ? (
+      {/* TABLE */}
+      <div className={styles.tableWrapper}>
+        <table className={styles.table}>
+          <thead>
             <tr>
-              <td
-                colSpan={7}
-                style={{ textAlign: "center", padding: 24, color: "#6b7280" }}
-              >
-                Đang tải dữ liệu…
-              </td>
+              <th>Hình ảnh</th>
+              <th>Tên sản phẩm</th>
+              <th>Danh mục</th>
+              <th>Giá</th>
+              <th>Tồn kho</th>
+              <th>Thao tác</th>
             </tr>
-          ) : paginated.length === 0 ? (
-            <tr>
-              <td
-                colSpan={7}
-                style={{ textAlign: "center", padding: 24, color: "#6b7280" }}
-              >
-                Không có sản phẩm nào
-              </td>
-            </tr>
-          ) : (
-            paginated.map((r, index) => (
-              <tr key={r.id}>
+          </thead>
+          <tbody>
+            {filteredProducts.map((p) => (
+              <tr key={p.id}>
                 <td>
-                {(page - 1) * PAGE_SIZE + index + 1}
+                  <img
+                    src={p.img?.[0] ? getImageUrl(p.img[0].url) : ""}
+                    alt=""
+                    className={styles.thumb}
+                  />
+                </td>
+                <td className={styles.nameCell}>
+                  <span className={styles.name}>{p.productName}</span>
+                  <span className={styles.sub}>{p.subCategory}</span>
                 </td>
                 <td>
-                  <div className={styles.productCell}>
-                    <span className={styles.productName}>{r.name}</span>
-                    <span className={styles.productId}>Mã: {r.code}</span>
-                  </div>
+                  {
+                    categories.find((c) => c.id === p.categoryId)?.name ??
+                    "---"
+                  }
                 </td>
+                <td>{p.price?.toLocaleString("vi-VN")}đ</td>
+                <td>{p.inventory}</td>
                 <td>
-                  <div className={styles.productCell}>
-                    <span className={styles.productName}>{r.category}</span>
-                    {r.subCategory && (
-                      <span className={styles.productId}>Nhóm: {r.subCategory}</span>
-                    )}
-                  </div>
-                </td>
-                <td>{r.price.toLocaleString("vi-VN")}₫</td>
-                <td>{r.stock}</td>
-                <td>{badge(statusLabel(r.status), r.status)}</td>
-                <td>{r.createdAt}</td>
-                <td style={{ textAlign: "right" }}>
                   <button
-                    className={styles.actionBtn}
-                    onClick={() => handleEdit(r.id)}
-                    title="Sửa"
+                    className={styles.iconBtn}
+                    onClick={() => openEditModal(p)}
                   >
                     <FiEdit2 />
                   </button>
                   <button
-                    className={`${styles.actionBtn} ${styles.deleteBtn}`}
-                    onClick={() => handleDelete(r.id)}
-                    title="Xóa"
+                    className={`${styles.iconBtn} ${styles.delete}`}
+                    onClick={() => handleDelete(p.id)}
                   >
                     <FiTrash2 />
                   </button>
                 </td>
               </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-
-      {/* Pagination */}
-      <div className={styles.pagination}>
-        <button
-          className={styles.pageBtn}
-          disabled={page === 1}
-          onClick={() => setPage((p) => Math.max(1, p - 1))}
-        >
-          <FiChevronLeft />
-        </button>
-        <div className={styles.pageInfo}>
-          Trang {page} / {totalPages}
-        </div>
-        <button
-          className={styles.pageBtn}
-          disabled={page === totalPages}
-          onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
-        >
-          <FiChevronRight />
-        </button>
+            ))}
+            {filteredProducts.length === 0 && (
+              <tr>
+                <td colSpan={6} style={{ textAlign: "center", padding: 24 }}>
+                  Không có sản phẩm nào
+                </td>
+              </tr>
+            )}
+          </tbody>
+        </table>
       </div>
 
-      {/* Modal Thêm / Sửa sản phẩm */}
-      {modalProduct && (
-        <div className={styles.modalBackdrop}>
+      {/* MODAL */}
+      {showModal && (
+        <div className={styles.modalOverlay}>
           <div className={styles.modal}>
-            <h3 className={styles.modalTitle}>
-              {modalMode === "edit" ? "Sửa sản phẩm" : "Thêm sản phẩm"}
-            </h3>
-
-            <div className={styles.modalBody}>
-              {/* Mã sản phẩm */}
-              <div className={styles.field}>
-                <label>Mã sản phẩm</label>
-                <input
-                  type="text"
-                  value={modalProduct.code || ""}
-                  onChange={(e) =>
-                    setModalProduct((prev) => ({
-                      ...prev,
-                      code: e.target.value,
-                    }))
-                  }
-                  placeholder="VD: AJNR02"
-                />
-              </div>
-
-              {/* Tên */}
-              <div className={styles.field}>
-                <label>Tên sản phẩm</label>
-                <input
-                  type="text"
-                  value={modalProduct.name}
-                  onChange={(e) =>
-                    setModalProduct((prev) => ({
-                      ...prev,
-                      name: e.target.value,
-                    }))
-                  }
-                />
-              </div>
-
-              {/* Danh mục */}
-              <div className={styles.field}>
-                <label>Danh mục</label>
-                <select
-                  value={modalProduct.category}
-                  onChange={(e) =>
-                    setModalProduct((prev) => ({
-                      ...prev,
-                      category: e.target.value,
-                    }))
-                  }
-                >
-                  {categoryOptions
-                    .filter((c) => c !== "all")
-                    .map((c) => (
-                      <option key={c} value={c}>
-                        {c}
+            <div className={styles.modalHeader}>
+              <h3>
+                {isEditMode ? "Cập nhật sản phẩm" : "Thêm sản phẩm mới"}
+              </h3>
+              <button onClick={() => setShowModal(false)}>
+                <FiX />
+              </button>
+            </div>
+            <form onSubmit={handleSubmit} className={styles.modalBody}>
+              {/* Thông tin chung */}
+              <div className={styles.formGrid}>
+                <div className={styles.formGroup}>
+                  <label>Tên sản phẩm</label>
+                  <input
+                    required
+                    value={formData.productName}
+                    onChange={(e) =>
+                      setFormData({ ...formData, productName: e.target.value })
+                    }
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Danh mục</label>
+                  <select
+                    required
+                    value={formData.categoryId}
+                    onChange={(e) =>
+                      setFormData({ ...formData, categoryId: e.target.value })
+                    }
+                  >
+                    <option value="">Chọn danh mục</option>
+                    {categories.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
                       </option>
                     ))}
-                </select>
-              </div>
-
-              {/* SubCategory */}
-              <div className={styles.field}>
-                <label>Tiểu danh mục (subCategory)</label>
-                <input
-                  type="text"
-                  value={modalProduct.subCategory || ""}
-                  onChange={(e) =>
-                    setModalProduct((prev) => ({
-                      ...prev,
-                      subCategory: e.target.value,
-                    }))
-                  }
-                  placeholder="VD: Quần Dài, Áo Polo, Phụ kiện…"
-                />
-              </div>
-
-              {/* Giá + tồn kho */}
-              <div className={styles.fieldRow}>
-                <div className={styles.field}>
-                  <label>Giá</label>
+                  </select>
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Kiểu dáng (SubCategory)</label>
+                  <input
+                    value={formData.subCategory}
+                    onChange={(e) =>
+                      setFormData({ ...formData, subCategory: e.target.value })
+                    }
+                    placeholder="VD: Polo, Jeans..."
+                  />
+                </div>
+                <div className={styles.formGroup}>
+                  <label>Giá bán</label>
                   <input
                     type="number"
-                    min={0}
-                    value={modalProduct.price}
+                    required
+                    value={formData.price}
                     onChange={(e) =>
-                      setModalProduct((prev) => ({
-                        ...prev,
+                      setFormData({
+                        ...formData,
                         price: Number(e.target.value),
-                      }))
-                    }
-                  />
-                </div>
-                <div className={styles.field}>
-                  <label>Tồn kho tổng</label>
-                  <input
-                    type="number"
-                    min={0}
-                    value={modalProduct.stock}
-                    onChange={(e) =>
-                      setModalProduct((prev) => ({
-                        ...prev,
-                        stock: Number(e.target.value),
-                      }))
+                      })
                     }
                   />
                 </div>
               </div>
 
-              {/* Trạng thái */}
-              <div className={styles.field}>
-                <label>Trạng thái</label>
-                <select
-                  value={modalProduct.status}
-                  onChange={(e) =>
-                    setModalProduct((prev) => ({
-                      ...prev,
-                      status: e.target.value,
-                    }))
-                  }
-                >
-                  {statuses
-                    .filter((s) => s !== "all")
-                    .map((s) => (
-                      <option key={s} value={s}>
-                        {statusLabel(s)}
-                      </option>
-                    ))}
-                </select>
+              {/* Ảnh */}
+              <div className={styles.formGroup}>
+                <label>Hình ảnh</label>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '15px' }}>
+                  <input 
+                      type="text" 
+                      placeholder="Dán link ảnh online (VD: https://imgur.com/...)"
+                      value={imageUrlInput}
+                      onChange={(e) => setImageUrlInput(e.target.value)}
+                      style={{ flex: 1 }}
+                  />
+                  <button 
+                      type="button" 
+                      onClick={handleAddFromUrl}
+                      className={styles.addBtn}
+                      style={{ whiteSpace: 'nowrap' }}
+                  >
+                      Thêm Link
+                  </button>
+              </div>
+                <div className={styles.imageUpload}>
+                  {formData.img.map((img, idx) => (
+                    <div key={idx} className={styles.imgPreview}>
+                      <img src={getImageUrl(img.url)} alt="" />
+                      <button
+                        type="button"
+                        onClick={() => removeImage(idx)}
+                      >
+                        <FiX />
+                      </button>
+                    </div>
+                  ))}
+                  <label className={styles.uploadBtn}>
+                    {uploading ? "..." : (
+                      <>
+                        <FiUpload /> Upload
+                      </>
+                    )}
+                    <input
+                      type="file"
+                      multiple
+                      onChange={handleUpload}
+                      hidden
+                    />
+                  </label>
+                </div>
               </div>
 
-              {/* Ảnh – mỗi dòng một URL */}
-              <div className={styles.field}>
-                <label>Hình ảnh (mỗi dòng 1 URL)</label>
-                <textarea
-                  rows={3}
-                  value={(modalProduct.images || []).join("\n")}
-                  onChange={(e) => {
-                    const arr = e.target.value
-                      .split("\n")
-                      .map((s) => s.trim())
-                      .filter(Boolean);
-                    setModalProduct((prev) => ({ ...prev, images: arr }));
-                  }}
-                  placeholder="/assets/images/AJNR02.jpg
-/assets/images/AJNR02-1.jpg
-/assets/images/AJNR02-2.jpg"
-                />
-              </div>
-
-              {/* Inventory: 1 màu + nhiều size (đơn giản) */}
-              <div className={styles.field}>
-                <label>Biến thể (màu & size)</label>
-                {(() => {
-                  const inv =
-                    modalProduct.inventory && modalProduct.inventory[0]
-                      ? modalProduct.inventory[0]
-                      : { color: "", colorHex: "#000000", sizes: [] };
-
-                  return (
-                    <>
-                      <div className={styles.fieldRow}>
-                        <input
-                          type="text"
-                          placeholder="Màu (VD: Đen)"
-                          value={inv.color}
-                          onChange={(e) =>
-                            setModalProduct((prev) => ({
-                              ...prev,
-                              inventory: [
-                                {
-                                  ...inv,
-                                  color: e.target.value,
-                                },
-                              ],
-                            }))
-                          }
-                        />
-                        <input
-                          type="text"
-                          placeholder="#000000"
-                          value={inv.colorHex}
-                          onChange={(e) =>
-                            setModalProduct((prev) => ({
-                              ...prev,
-                              inventory: [
-                                {
-                                  ...inv,
-                                  colorHex: e.target.value,
-                                },
-                              ],
-                            }))
-                          }
-                        />
-                      </div>
-                      <input
-                        type="text"
-                        placeholder="Size, phân cách bởi dấu phẩy. VD: 29,30,31"
-                        value={(inv.sizes || []).join(",")}
-                        onChange={(e) =>
-                          setModalProduct((prev) => ({
-                            ...prev,
-                            inventory: [
-                              {
-                                ...inv,
-                                sizes: e.target.value
-                                  .split(",")
-                                  .map((s) => s.trim())
-                                  .filter(Boolean),
-                              },
-                            ],
-                          }))
-                        }
+              {/* Variants */}
+              <div className={styles.formGroup}>
+                <label>Biến thể (Size / Màu)</label>
+                {formData.variants.map((v, idx) => (
+                  <div key={idx} className={styles.variantRow}>
+                    <input
+                      placeholder="Size"
+                      value={v.size}
+                      onChange={(e) =>
+                        handleVariantChange(idx, "size", e.target.value)
+                      }
+                    />
+                    <input
+                      placeholder="Màu"
+                      value={v.color}
+                      onChange={(e) =>
+                        handleVariantChange(idx, "color", e.target.value)
+                      }
+                    />
+                    <div className={styles.colorPickerWrapper}>
+                      <input 
+                        placeholder="#000000" 
+                        value={v.colorHex} 
+                        onChange={e => handleVariantChange(idx, 'colorHex', e.target.value)} 
+                        className={styles.hexInput}
                       />
-                    </>
-                  );
-                })()}
+                      
+                      <input 
+                        type="color" 
+                        value={v.colorHex || '#000000'} 
+                        onChange={e => handleVariantChange(idx, 'colorHex', e.target.value)} 
+                        className={styles.colorInput}
+                        title="Chọn màu nhanh"
+                      />
+                  </div>
+                    <input
+                      type="number"
+                      placeholder="Số lượng"
+                      value={v.quantity}
+                      onChange={(e) =>
+                        handleVariantChange(
+                          idx,
+                          "quantity",
+                          Number(e.target.value)
+                        )
+                      }
+                    />
+                    <button
+                      type="button"
+                      onClick={() => removeVariant(idx)}
+                      className={styles.removeVar}
+                    >
+                      <FiX />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className={styles.addVarBtn}
+                  onClick={addVariant}
+                >
+                  + Thêm biến thể
+                </button>
               </div>
 
-              {/* Mô tả chi tiết */}
-              <div className={styles.field}>
+              {/* Mô tả */}
+              <div className={styles.formGroup}>
                 <label>Mô tả chi tiết (HTML)</label>
                 <textarea
-                  rows={6}
-                  value={modalProduct.fullDescription || ""}
+                  rows="5"
+                  value={formData.fullDescription}
                   onChange={(e) =>
-                    setModalProduct((prev) => ({
-                      ...prev,
+                    setFormData({
+                      ...formData,
                       fullDescription: e.target.value,
-                    }))
+                    })
                   }
-                  placeholder="<p><strong>Tên sản phẩm:</strong> ...</p>"
-                />
+                ></textarea>
               </div>
 
-              {/* Ngày thêm (readonly) */}
-              <div className={styles.field}>
-                <label>Ngày thêm</label>
-                <input type="text" value={modalProduct.createdAt} disabled />
+              <div className={styles.modalActions}>
+                <button
+                  type="button"
+                  className={styles.cancelBtn}
+                  onClick={() => setShowModal(false)}
+                >
+                  Hủy
+                </button>
+                <button type="submit" className={styles.saveBtn}>
+                  Lưu lại
+                </button>
               </div>
-            </div>
-
-            <div className={styles.modalFooter}>
-              <button
-                type="button"
-                className={styles.cancelBtn}
-                onClick={closeModal}
-              >
-                Hủy
-              </button>
-              <button
-                type="button"
-                className={styles.saveBtn}
-                onClick={handleSaveModal}
-              >
-                Lưu
-              </button>
-            </div>
+            </form>
           </div>
         </div>
       )}
     </div>
   );
-}
+
+  // ===== HELPER FUNCTIONS (TRONG COMPONENT) =====
+  function handleVariantChange(index, field, value) {
+    const newVariants = [...formData.variants];
+    newVariants[index][field] = value;
+    setFormData({ ...formData, variants: newVariants });
+  }
+
+  function addVariant() {
+    setFormData({
+      ...formData,
+      variants: [
+        ...formData.variants,
+        { size: "", color: "", colorHex: "", quantity: 0, images: "" },
+      ],
+    });
+  }
+
+  function removeVariant(index) {
+    setFormData({
+      ...formData,
+      variants: formData.variants.filter((_, i) => i !== index),
+    });
+  }
+};
+
+export default AdminProducts;

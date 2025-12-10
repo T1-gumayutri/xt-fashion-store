@@ -54,7 +54,7 @@ exports.kpis = async (req, res, next) => {
 exports.revenueByPeriod = async (req, res, next) => {
   try {
     const { start, end } = parseRange(req.query);
-    const grain = req.query.grain === 'month' ? 'month' : 'day'; // 'day' | 'month'
+    const grain = req.query.grain === 'month' ? 'month' : 'day';
 
     const match = {
       createdAt: { $gte: start, $lt: end },

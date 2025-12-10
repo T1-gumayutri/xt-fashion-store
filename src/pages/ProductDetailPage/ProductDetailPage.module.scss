@@ -208,6 +208,7 @@
     font-size: 1rem;
     font-weight: 600;
     color: #222;
+    appearance: textfield;
     -moz-appearance: textfield;
     &::-webkit-outer-spin-button,
     &::-webkit-inner-spin-button {
@@ -533,4 +534,35 @@
       gap: 15px;
     }
   }
+}
+
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 60vh; /* Chiều cao để căn giữa màn hình */
+  width: 100%;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3; /* Màu nền vòng tròn (xám nhạt) */
+  border-top: 4px solid #007bff; /* Màu xoay (xanh dương - hoặc đổi theo màu web bạn) */
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 15px;
+}
+
+.loadingText {
+  color: #666;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+
+/* Định nghĩa chuyển động xoay */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
 }

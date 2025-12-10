@@ -71,6 +71,7 @@ export const AuthProvider = ({ children }) => {
       value={{ user, token, login, logout, loading }} 
     >
       {!loading && children}
+      {loading && <div style={{height: '100vh', display: 'flex', justifyContent: 'center', alignItems: 'center'}}>Đang tải dữ liệu...</div>}
     </AuthContext.Provider>
   );
 };

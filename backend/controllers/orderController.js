@@ -1,6 +1,40 @@
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 const Cart = require('../models/Cart');
+const Promotion = require('../models/Promotion');
+
+// helper tự động hủy đơn VNPAY chưa thanh toán sau 24h
+async function autoCancelExpiredVnpayOrders() {
+  const now = new Date();
+  const expiredTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+
+  const expiredOrders = await Order.find({
+    paymentMethod: 'bank',
+    paymentStatus: 'unpaid',
+    status: 'pending',
+    createdAt: { $lt: expiredTime }
+  });
+
+  for (const order of expiredOrders) {
+    for (const item of order.items) {
+      const product = await Product.findById(item.productId);
+      if (!product) continue;
+
+      const variantIndex = product.variants.findIndex(
+        v => v.size === item.size && v.color === item.color
+      );
+      if (variantIndex !== -1) {
+        product.variants[variantIndex].quantity += item.quantity;
+      }
+      product.inventory += item.quantity;
+      await product.save();
+    }
+
+    order.status = 'cancelled';
+    order.paymentStatus = 'expired';
+    await order.save();
+  }
+}
 
 // POST /api/orders
 exports.createOrder = async (req, res) => {
@@ -64,6 +98,8 @@ exports.createOrder = async (req, res) => {
 
     const total = itemsPrice + shipFee - discountAmount;
 
+    const initialPaymentStatus = 'unpaid';
+
     const order = new Order({
       userId: req.user._id,
       orderCode: 'ORD-' + Date.now(),
@@ -74,13 +110,20 @@ exports.createOrder = async (req, res) => {
       shippingFee: shipFee,
       total,
       promotion: discountAmount > 0 ? { code: promotionCode, discountAmount } : null,
-      isPaid: paymentMethod === 'bank' ? false : false,
+      isPaid: false,
+      paymentStatus: initialPaymentStatus,
       status: 'pending'
     });
 
     const createdOrder = await order.save();
 
-    await Cart.findOneAndDelete({ userId: req.user._id });
+    if (promotionCode) {
+      const promo = await Promotion.findOne({ code: promotionCode });
+      if (promo) {
+        promo.usedCount = (promo.usedCount || 0) + 1;
+        await promo.save();
+      }
+    }
 
     res.status(201).json(createdOrder);
 
@@ -94,6 +137,8 @@ exports.createOrder = async (req, res) => {
 // GET /api/orders/my-orders
 exports.getMyOrders = async (req, res) => {
   try {
+    await autoCancelExpiredVnpayOrders();
+
     const orders = await Order.find({ userId: req.user._id }).sort({ createdAt: -1 });
     res.json(orders);
   } catch (err) {
@@ -122,6 +167,7 @@ exports.getOrderById = async (req, res) => {
 // GET /api/orders --admin--
 exports.getAllOrders = async (req, res) => {
   try {
+    await autoCancelExpiredVnpayOrders();
     const orders = await Order.find({})
         .populate('userId', 'fullname')
         .sort({ createdAt: -1 });
@@ -134,25 +180,42 @@ exports.getAllOrders = async (req, res) => {
 // PUT /api/orders/:id/status --admin--
 exports.updateOrderStatus = async (req, res) => {
   try {
+    const { status, paymentStatus } = req.body; 
+    
     const order = await Order.findById(req.params.id);
     if (!order) return res.status(404).json({ msg: 'Đơn hàng không tồn tại' });
 
-    if (req.body.status) {
-        order.status = req.body.status;
-    }
-    
-    if (req.body.status === 'delivered') {
-        order.isDelivered = true;
-        order.deliveredAt = Date.now();
-        if(order.paymentMethod === 'cod') {
-            order.isPaid = true;
-            order.paidAt = Date.now();
+    if (status) {
+        order.status = status;
+        
+        if (status === 'delivered') {
+            order.isDelivered = true;
+            order.deliveredAt = Date.now();
+
+            if (order.paymentMethod === 'cod' && !paymentStatus) {
+                order.isPaid = true;
+                order.paymentStatus = 'paid';
+                order.paidAt = Date.now();
+            }
         }
+    }
+
+    if (paymentStatus) {
+        order.paymentStatus = paymentStatus;
+
+        if (paymentStatus === 'paid') {
+            order.isPaid = true;
+            if (!order.paidAt) order.paidAt = Date.now();
+        } else if (paymentStatus === 'unpaid') {
+            order.isPaid = false;
+            order.paidAt = null;
+        } 
     }
 
     await order.save();
     res.json(order);
   } catch (err) {
+    console.error("Lỗi update status:", err);
     res.status(500).json({ msg: 'Lỗi Server' });
   }
 };

@@ -32,3 +32,78 @@
   color: #888;
   padding: 50px 0;
 }
+
+.container {
+  max-width: 1280px; /* Đồng bộ với các trang khác là 1280px */
+  margin: 0 auto;
+  padding: 20px 15px;
+  min-height: 60vh;
+}
+
+.pageTitle {
+  font-size: 2rem;
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 30px;
+  text-transform: capitalize; /* Viết hoa chữ cái đầu */
+  color: #222;
+}
+
+/* --- LƯỚI SẢN PHẨM --- */
+.productGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+
+  @media (max-width: 992px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (max-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  @media (max-width: 480px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* --- THÔNG BÁO KHÔNG CÓ SẢN PHẨM --- */
+.noProducts {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #888;
+  padding: 50px 0;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+}
+
+//PHẦN LOADING
+.loadingContainer {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  min-height: 50vh;
+  width: 100%;
+}
+
+.spinner {
+  width: 50px;
+  height: 50px;
+  border: 4px solid #f3f3f3;
+  border-top: 4px solid #007bff;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+  margin-bottom: 20px;
+}
+
+.loadingText {
+  color: #666;
+  font-size: 1.1rem;
+  font-weight: 500;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
