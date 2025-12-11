@@ -94,11 +94,55 @@ exports.createOrder = async (req, res) => {
     }
 
     const shipFee = Number(shippingFee) || 0;
+    
     let discountAmount = 0;
+    let promoToUpdate = null;
+
+    if (promotionCode) {
+      const promo = await Promotion.findOne({ code: promotionCode, isActive: true });
+      
+      if (!promo) {
+          return res.status(400).json({ msg: 'Mã khuyến mãi không tồn tại hoặc đã bị khóa' });
+      }
+
+      const now = new Date();
+      if (now < promo.startDate || now > promo.endDate) {
+          return res.status(400).json({ msg: 'Mã khuyến mãi chưa bắt đầu hoặc đã hết hạn' });
+      }
+
+      if (promo.maxUses !== null && promo.usedCount >= promo.maxUses) {
+          return res.status(400).json({ msg: 'Mã khuyến mãi đã hết lượt sử dụng' });
+      }
+
+      if (itemsPrice < promo.minOrderValue) {
+          return res.status(400).json({ 
+             msg: `Đơn hàng chưa đủ điều kiện (Tối thiểu ${promo.minOrderValue.toLocaleString('vi-VN')}đ)` 
+          });
+      }
+
+      if (promo.type === 'percent') {
+          discountAmount = (itemsPrice * promo.value) / 100;
+          
+          if (promo.maxDiscount > 0 && discountAmount > promo.maxDiscount) {
+              discountAmount = promo.maxDiscount;
+          }
+      } else if (promo.type === 'fixed') {
+          discountAmount = promo.value;
+      } else if (promo.type === 'shipping') {
+          discountAmount = promo.value; 
+          if (discountAmount > shipFee) {
+              discountAmount = shipFee;
+          }
+      }
+
+      promoToUpdate = promo;
+    }
+
+    if (discountAmount > (itemsPrice + shipFee)) {
+        discountAmount = itemsPrice + shipFee;
+    }
 
     const total = itemsPrice + shipFee - discountAmount;
-
-    const initialPaymentStatus = 'unpaid';
 
     const order = new Order({
       userId: req.user._id,
@@ -111,25 +155,21 @@ exports.createOrder = async (req, res) => {
       total,
       promotion: discountAmount > 0 ? { code: promotionCode, discountAmount } : null,
       isPaid: false,
-      paymentStatus: initialPaymentStatus,
+      paymentStatus: 'unpaid',
       status: 'pending'
     });
 
     const createdOrder = await order.save();
 
-    if (promotionCode) {
-      const promo = await Promotion.findOne({ code: promotionCode });
-      if (promo) {
-        promo.usedCount = (promo.usedCount || 0) + 1;
-        await promo.save();
-      }
+    if (promoToUpdate) {
+      promoToUpdate.usedCount = (promoToUpdate.usedCount || 0) + 1;
+      await promoToUpdate.save();
     }
 
     res.status(201).json(createdOrder);
 
   } catch (err) {
     console.error(err);
-
     res.status(500).json({ msg: 'Lỗi Server khi tạo đơn hàng' });
   }
 };

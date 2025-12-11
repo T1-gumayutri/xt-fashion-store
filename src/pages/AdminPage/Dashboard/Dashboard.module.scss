@@ -1,142 +1,169 @@
+// --- VARIABLES ---
+$bg-body: #f3f4f6;
+$bg-card: #ffffff;
+$text-primary: #111827;
+$text-secondary: #6b7280;
+$primary-color: #6366f1;
+$border-color: #e5e7eb;
+$shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+$radius-lg: 16px;
+
 .dashboard {
+  padding: 32px;
+  background-color: $bg-body;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+}
+
+// --- HEADER ---
+.header {
   display: flex;
-  flex-direction: column;
-  gap: 24px;
-  padding: 24px;
-  background: #f8fafc;
-  min-height: calc(100vh - 64px); 
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 32px;
+  flex-wrap: wrap;
+  gap: 20px;
+
+  .title { margin: 0 0 8px 0; font-size: 28px; font-weight: 800; color: $text-primary; }
+  .subtitle { margin: 0; color: $text-secondary; font-size: 15px; }
+
+  .controls {
+    display: flex; gap: 12px;
+    
+    .filterGroup, .datePicker {
+      background: $bg-card;
+      border: 1px solid $border-color;
+      padding: 8px 16px;
+      border-radius: 12px;
+      display: flex; align-items: center; gap: 10px;
+      box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+      
+      select, input { border: none; outline: none; font-size: 14px; background: transparent; cursor: pointer; color: $text-primary; font-weight: 500;}
+      svg { color: $text-secondary; }
+    }
+  }
 }
 
-h2 {
-  font-size: 28px;
-  font-weight: 700;
-  color: #0f172a; 
-  margin: 0 0 20px 0;
-}
-
-h3 {
-  font-size: 18px;
-  font-weight: 600;
-  margin: 0 0 12px 0;
-  color: #0f172a; 
-}
-
-/* KPI cards */
-.cardGrid {
+// --- KPI CARDS ---
+.kpiGrid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
-  gap: 16px;
+  gap: 24px;
+  margin-bottom: 24px;
 }
 
-.card {
-  background: #ffffff; 
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.06);
-  border: 1px solid #eef2f7; 
-  padding: 20px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  transition: all 0.2s ease-in-out;
+.kpiCard {
+  background: $bg-card;
+  border-radius: $radius-lg;
+  padding: 24px;
+  box-shadow: $shadow-md;
+  
+  &.indigo .iconWrapper { background: #e0e7ff; color: #4338ca; }
+  &.emerald .iconWrapper { background: #d1fae5; color: #065f46; }
+  &.orange .iconWrapper { background: #ffedd5; color: #c2410c; }
+  &.blue .iconWrapper { background: #dbeafe; color: #1e40af; }
+
+  .cardTop { display: flex; justify-content: space-between; margin-bottom: 20px; }
+  .iconWrapper { width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+  
+  .trend {
+    display: flex; align-items: center; gap: 4px; font-size: 13px; font-weight: 600; padding: 4px 10px; border-radius: 20px;
+    &.up { background: #ecfdf5; color: #10b981; }
+    &.down { background: #fef2f2; color: #ef4444; }
+  }
+
+  .cardContent {
+    h3 { font-size: 28px; font-weight: 800; margin: 0 0 4px 0; color: $text-primary; }
+    p { margin: 0; color: $text-secondary; font-size: 14px; }
+  }
 }
 
-.card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
-  border-color: #dbe3ff; 
+// --- FULL WIDTH CHART ---
+.fullWidthSection {
+  margin-bottom: 24px;
 }
 
-/* Biểu đồ + bảng chia đôi */
-.section {
+// --- INSIGHTS GRID (2 Pie Charts)
+.insightsGrid {
   display: grid;
-  grid-template-columns: 1.5fr 1fr;
-  gap: 20px;
-  @media (max-width: 1000px) {
-    grid-template-columns: 1fr;
-  }
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
+  margin-bottom: 24px;
 }
 
-/* Bảng top sản phẩm */
-.table {
-  width: 100%;
-  border-collapse: collapse;
-  background: #ffffff;
-  border-radius: 8px;
-  overflow: hidden;
+// --- CARD STYLES ---
+.chartCard {
+  background: $bg-card;
+  border-radius: $radius-lg;
+  padding: 24px;
+  box-shadow: $shadow-md;
+  height: 400px;
+  display: flex; flex-direction: column;
+  border: 1px solid $border-color;
+
+  .cardHeader { margin-bottom: 20px; h3 { margin: 0; font-size: 18px; font-weight: 700; color: $text-primary; } }
+  .chartBody { flex: 1; min-height: 0; }
 }
 
-.table th {
-  text-align: left;
-  background: #f8fafc; 
-  font-weight: 600;
-  padding: 12px 16px;
-  color: #334155; 
-  border-bottom: 1px solid #eef2f7; 
-  font-size: 13px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+// --- DETAILS GRID (3 Lists) ---
+.detailsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 24px;
 }
 
-.table td {
-  padding: 14px 16px;
-  border-bottom: 1px solid #eef2f7;
-  color: #334155;
-  font-size: 14px;
-}
-
-.table tr:last-child td {
-  border-bottom: none;
-}
-
-.table tbody tr:hover {
-  background: #f1f5ff; 
-}
-
-/* Màu số tăng giảm */
-.positive {
-  color: #16a34a;
-  font-weight: 600;
-}
-.negative {
-  color: #ef4444; 
-  font-weight: 600;
-}
-
-/* Thanh tiêu đề nhỏ bên trên card */
-.subTitle {
-  font-size: 13px;
-  font-weight: 500;
-  color: #64748b; 
-}
-
-/* Animation khi load */
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-.card,
-.table {
-  animation: fadeIn 0.4s ease-out;
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-  .dashboard {
-    padding: 16px;
+.detailCard {
+  @extend .chartCard; 
+  
+  .cardHeader { 
+    display: flex; justify-content: space-between; align-items: center;
+    .badgeWarn { background: #fee2e2; color: #ef4444; padding: 2px 8px; border-radius: 10px; font-size: 12px; font-weight: 700; }
   }
 
-  h2 {
-    font-size: 24px;
-  }
+  .listWrapper { flex: 1; overflow-y: auto; padding-right: 8px; }
+  .listWrapper::-webkit-scrollbar { width: 5px; }
+  .listWrapper::-webkit-scrollbar-thumb { background: #e5e7eb; border-radius: 10px; }
+}
 
-  .cardGrid {
-    grid-template-columns: 1fr;
+// List Items
+.listItem {
+  display: flex; align-items: center; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f3f4f6;
+  &:last-child { border-bottom: none; }
+
+  .rank { font-weight: 700; color: #9ca3af; width: 20px; text-align: center; }
+  img { width: 40px; height: 40px; border-radius: 8px; object-fit: cover; border: 1px solid #f3f4f6; }
+  .smallImg { width: 36px; height: 36px; }
+  .avatar { width: 40px; height: 40px; border-radius: 50%; background: #e0e7ff; color: #4338ca; display: flex; align-items: center; justify-content: center; font-weight: 700; }
+  
+  .itemInfo { flex: 1; display: flex; flex-direction: column; gap: 2px; overflow: hidden; }
+  .itemName { font-size: 14px; font-weight: 600; color: $text-primary; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .itemSub { font-size: 12px; color: $text-secondary; }
+  
+  .itemValue { font-size: 13px; font-weight: 700; color: $primary-color; }
+  .stockBadge { display: flex; align-items: center; gap: 4px; font-size: 12px; color: #ef4444; font-weight: 600; background: #fef2f2; padding: 4px 8px; border-radius: 6px; }
+}
+
+.customTooltip {
+  background: rgba(30,41,59,0.9); padding: 10px; border-radius: 8px; color: #fff;
+  .tooltipLabel { font-size: 12px; margin-bottom: 4px; color: #cbd5e1; }
+  .value { font-weight: 700; }
+}
+
+.noData, .emptyState {
+  height: 100%; display: flex; align-items: center; justify-content: center;
+  color: $text-secondary; font-style: italic;
+}
+
+// --- RESPONSIVE ---
+@media (max-width: 1024px) {
+  .insightsGrid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 640px) {
+  .dashboard { padding: 16px; }
+  .header { 
+    flex-direction: column; align-items: flex-start;
+    .controls { width: 100%; flex-direction: column; }
+    .filterGroup, .datePicker { width: 100%; justify-content: space-between; }
   }
 }

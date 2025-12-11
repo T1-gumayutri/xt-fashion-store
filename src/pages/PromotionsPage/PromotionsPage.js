@@ -71,7 +71,7 @@ const PromotionsPage = () => {
                      <div className={styles.promoAction}>
                        {promo.maxUses && (
                          <span className={styles.promoQuantity}>
-                           Giới hạn: {promo.maxUses} lượt
+                           Giới hạn: {promo.maxUses - promo.usedCount} lượt
                          </span>
                        )}
                        
