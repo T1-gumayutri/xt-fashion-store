@@ -1,4 +1,5 @@
-# CREATE .env FILE IN SERVER DIRECTORY
+# HOW TO RUN WEB SERVER
+    # CREATE .env FILE IN SERVER DIRECTORY
     In the project directory, you will directory navigation to direcory backend, create a new file with name .env and copy from scripts bellow there - create evironment varible
     ### `MONGO_URI=mongodb+srv://xuantri18112004_db_user:eiEkrprrEz63giaQ@cluster0.bsyrses.mongodb.net/fashionstore?retryWrites=true&w=majority&appName=Cluster0`
     ###  `JWT_SECRET=a_super_secret_key_that_is_long_and_random`
