@@ -2,22 +2,21 @@ import React, { useState, useEffect, useMemo } from 'react';
 import PageLayout from '../../components/layout/PageLayout/PageLayout';
 import ProductCard from '../../components/product/ProductCard/ProductCard';
 import styles from './AccessoriesListPage.module.scss';
-
 import productApi from '../../api/productApi';
 
+// Import component bộ lọc
 import PriceRangeSlider from '../../components/common/PriceRangeSlider/PriceRangeSlider';
 import ColorFilter from '../../components/common/ColorFilter/ColorFilter';
 
 const AccessoriesListPage = () => {
-    // --- State dữ liệu ---
     const [products, setProducts] = useState([]); 
     const [loading, setLoading] = useState(true);
 
-    // --- State bộ lọc ---
     const [sortOrder, setSortOrder] = useState('default');
     const [priceFilter, setPriceFilter] = useState([0, 10000000]); 
     const [colorFilter, setColorFilter] = useState([]);
 
+    // 1. Fetch dữ liệu (Category: phu-kien)
     useEffect(() => {
         const fetchProducts = async () => {
             try {
@@ -33,6 +32,7 @@ const AccessoriesListPage = () => {
         fetchProducts();
     }, []);
     
+    // 2. Tính Min/Max Price
     const { minPrice, maxPrice } = useMemo(() => {
         if (products.length === 0) return { minPrice: 0, maxPrice: 1000000 };
         const prices = products.map(p => p.price);
@@ -46,6 +46,7 @@ const AccessoriesListPage = () => {
         setPriceFilter([minPrice, maxPrice]);
     }, [minPrice, maxPrice]);
 
+    // 3. Lấy màu
     const availableColors = useMemo(() => {
         const colorMap = new Map();
         products.forEach(product => {
@@ -60,6 +61,7 @@ const AccessoriesListPage = () => {
         return Array.from(colorMap, ([name, hex]) => ({ name, hex }));
     }, [products]);
 
+    // 4. Lọc & Sắp xếp
     const sortedProducts = useMemo(() => {
         let result = [...products];
 
@@ -98,7 +100,6 @@ const AccessoriesListPage = () => {
     return (
         <PageLayout pageTitle="Phụ Kiện">
             <div className={styles.container}>
-                
                 {loading ? (
                     <div className={styles.loadingContainer}>
                         <div className={styles.spinner}></div>
@@ -106,58 +107,68 @@ const AccessoriesListPage = () => {
                     </div>
                 ) : (
                     <>
-                        <div className={styles.toolbar}>
-                            <div className={styles.filterContainer}>
-                                <PriceRangeSlider
-                                    min={minPrice}
-                                    max={maxPrice}
-                                    value={priceFilter} 
-                                    onFilterChange={handlePriceFilterChange}
-                                />
-                            </div>
+                        <h1 className={styles.pageTitle}>Phụ Kiện</h1>
 
-                            <div className={styles.colorFilterContainer}>
-                                <ColorFilter
-                                    availableColors={availableColors}
-                                    onChange={handleColorFilterChange}
-                                />
-                            </div>
-
-                            <div className={styles.controlsContainer}>
-                                <div className={styles.productCount}>
-                                    Hiển thị {sortedProducts.length} sản phẩm
+                        <div className={styles.layoutWrapper}>
+                            {/* --- SIDEBAR --- */}
+                            <aside className={styles.sidebar}>
+                                <div className={styles.filterGroup}>
+                                    
+                                    <PriceRangeSlider
+                                        min={minPrice}
+                                        max={maxPrice}
+                                        value={priceFilter} 
+                                        onFilterChange={handlePriceFilterChange}
+                                    />
                                 </div>
-                                <div className={styles.sortOptions}>
-                                    <label htmlFor="sort">Sắp xếp theo: </label>
-                                    <select 
-                                        id="sort" 
-                                        value={sortOrder} 
-                                        onChange={(e) => setSortOrder(e.target.value)}
-                                        className={styles.sortSelect}
-                                    >
-                                        <option value="default">Mặc định</option>
-                                        <option value="price-asc">Giá: Tăng dần</option>
-                                        <option value="price-desc">Giá: Giảm dần</option>
-                                        <option value="name-asc">Tên: A-Z</option>
-                                        <option value="name-desc">Tên: Z-A</option>
-                                    </select>
+
+                                <div className={styles.divider}></div>
+
+                                <div className={styles.filterGroup}>
+                                    
+                                    <ColorFilter
+                                        availableColors={availableColors}
+                                        onChange={handleColorFilterChange}
+                                    />
                                 </div>
-                            </div>
-                        </div>
+                            </aside>
 
-                        {/* Lưới sản phẩm */}
-                        <div className={styles.productGrid}>
-                            {sortedProducts.map((product) => (
-                                <ProductCard key={product._id} product={product}/>
-                            ))}
-                        </div>
+                            {/* --- CONTENT --- */}
+                            <main className={styles.mainContent}>
+                                <div className={styles.topBar}>
+                                    <div className={styles.productCount}>
+                                        Hiển thị <b>{sortedProducts.length}</b> sản phẩm
+                                    </div>
+                                    <div className={styles.sortOptions}>
+                                        <label htmlFor="sort">Sắp xếp: </label>
+                                        <select 
+                                            id="sort" 
+                                            value={sortOrder} 
+                                            onChange={(e) => setSortOrder(e.target.value)}
+                                            className={styles.sortSelect}
+                                        >
+                                            <option value="default">Mặc định</option>
+                                            <option value="price-asc">Giá: Tăng dần</option>
+                                            <option value="price-desc">Giá: Giảm dần</option>
+                                            <option value="name-asc">Tên: A-Z</option>
+                                            <option value="name-desc">Tên: Z-A</option>
+                                        </select>
+                                    </div>
+                                </div>
 
-                        {/* No Results */}
-                        {sortedProducts.length === 0 && (
-                            <div className={styles.noResults}>
-                                <p>Không tìm thấy sản phẩm nào phù hợp.</p>
-                            </div>
-                        )}
+                                <div className={styles.productGrid}>
+                                    {sortedProducts.map((product) => (
+                                        <ProductCard key={product._id} product={product}/>
+                                    ))}
+                                </div>
+
+                                {sortedProducts.length === 0 && (
+                                    <div className={styles.noResults}>
+                                        <p>Không tìm thấy sản phẩm nào phù hợp.</p>
+                                    </div>
+                                )}
+                            </main>
+                        </div>
                     </>
                 )}
             </div>

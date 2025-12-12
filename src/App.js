@@ -26,7 +26,7 @@ import CheckoutPage from './pages/CheckoutPage/CheckoutPage';
 import SearchResultsPage from './pages/SearchResultsPage/SearchResultsPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage/ResetPasswordPage';
-
+import SizeGuidePage from './pages/SizeGuidePage/SizeGuidePage';
 // Admin (nested)
 import AdminPage from './pages/AdminPage/AdminPage';
 import Dashboard from './pages/AdminPage/Dashboard/Dashboard';
@@ -69,6 +69,7 @@ function App() {
       <div className="App">
         <Routes>
           {/* Các Route công khai */}
+          
           <Route path="/" element={<HomePage />} />
           <Route path="/cart" element={<CartPage />} /> 
           <Route path="/ao-xuan-he" element={<ShirtListPage />} /> 
@@ -82,6 +83,7 @@ function App() {
           <Route path="/faq" element={<FaqPage />} />
           <Route path="/khuyen-mai" element={<PromotionsPage />} /> 
           <Route path="/search" element={<SearchResultsPage />} /> 
+          <Route path="/size-guide" element={<SizeGuidePage />} />
           <Route path="/forgot-password" element={<ForgotPasswordPage />} />
           <Route path="/reset-password/:token" element={<ResetPasswordPage />} />
 

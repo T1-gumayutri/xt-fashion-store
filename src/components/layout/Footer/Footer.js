@@ -17,12 +17,12 @@ const paymentMethods = [
 ];
 
 const companyLinks = [
-  { title: 'Giới thiệu', path: '/about' },
+  
   { title: 'Chính sách đổi trả', path: '/return-policy' },
   { title: 'Chính sách bảo mật', path: '/privacy-policy' },
   { title: 'Câu hỏi thường gặp', path: '/faq'},
-  { title: 'Tuyển dụng', path: '/careers' },
-  { title: 'Liên hệ', path: '/contact' },
+  { title: 'Hướng dẫn chọn size', path: '/size-guide' }
+  
 ];
 
 const Footer = () => {

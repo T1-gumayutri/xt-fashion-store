@@ -1,40 +1,5 @@
 .container {
-  max-width: 1200px;
-  margin: 40px auto;
-  padding: 0 15px;
-}
-
-.pageTitle {
-  font-size: 2rem;
-  font-weight: 700;
-  text-align: center;
-  margin-bottom: 30px;
-  text-transform: uppercase;
-}
-
-.productGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
-
-  @media (max-width: 992px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
-  @media (max-width: 576px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
-}
-
-.noProducts {
-  text-align: center;
-  font-size: 1.2rem;
-  color: #888;
-  padding: 50px 0;
-}
-
-.container {
-  max-width: 1280px; /* Đồng bộ với các trang khác là 1280px */
+  max-width: 1280px;
   margin: 0 auto;
   padding: 20px 15px;
   min-height: 60vh;
@@ -44,41 +9,118 @@
   font-size: 2rem;
   font-weight: 700;
   text-align: center;
-  margin-bottom: 30px;
-  text-transform: capitalize; /* Viết hoa chữ cái đầu */
+  margin-bottom: 40px;
+  text-transform: capitalize;
   color: #222;
 }
 
-/* --- LƯỚI SẢN PHẨM --- */
-.productGrid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+/* --- LAYOUT CHÍNH (FLEXBOX) --- */
+.layoutWrapper {
+  display: flex;
+  gap: 40px; /* Khoảng cách giữa Sidebar và Content */
+  align-items: flex-start;
+}
 
-  @media (max-width: 992px) {
-    grid-template-columns: repeat(3, 1fr);
-  }
+/* --- SIDEBAR TRÁI --- */
+.sidebar {
+  width: 260px; /* Chiều rộng cố định */
+  flex-shrink: 0; /* Không bị co lại */
+  background: #fff;
+  /* Nếu muốn sidebar dính khi cuộn, dùng sticky */
+  /* position: sticky; top: 100px; */ 
+}
 
-  @media (max-width: 768px) {
-    grid-template-columns: repeat(2, 1fr);
-  }
+.filterGroup {
+  margin-bottom: 30px;
 
-  @media (max-width: 480px) {
-    grid-template-columns: 1fr;
+  /* Ghi đè CSS của component con để đẹp hơn trong cột dọc */
+  :global(.priceSliderContainer) {
+    padding: 0;
+    margin-bottom: 0;
   }
 }
 
-/* --- THÔNG BÁO KHÔNG CÓ SẢN PHẨM --- */
-.noProducts {
+.filterTitle {
+  font-size: 0.95rem;
+  font-weight: 700;
+  margin-bottom: 15px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #111;
+  border-left: 3px solid #333; /* Điểm nhấn bên cạnh tiêu đề */
+  padding-left: 10px;
+}
+
+.divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 20px 0;
+}
+
+/* --- MAIN CONTENT PHẢI --- */
+.mainContent {
+  flex-grow: 1; /* Chiếm hết phần còn lại */
+}
+
+/* Thanh công cụ (Sort bar) */
+.topBar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.productCount {
+  font-size: 0.95rem;
+  color: #555;
+  b {
+    color: #000;
+  }
+}
+
+.sortOptions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 0.9rem;
+}
+
+.sortSelect {
+  padding: 6px 12px;
+  border: 1px solid #d9d9d9;
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  outline: none;
+  font-size: 0.9rem;
+  transition: border-color 0.2s;
+
+  &:hover {
+    border-color: #333;
+  }
+}
+
+/* Lưới sản phẩm */
+.productGrid {
+  display: grid;
+  /* 3 cột cho desktop vì đã mất diện tích cho sidebar */
+  grid-template-columns: repeat(3, 1fr); 
+  gap: 24px;
+}
+
+/* --- THÔNG BÁO EMPTY --- */
+.noResults {
   text-align: center;
-  font-size: 1.2rem;
-  color: #888;
-  padding: 50px 0;
+  font-size: 1.1rem;
+  color: #777;
+  padding: 60px;
   background-color: #f9f9f9;
   border-radius: 8px;
 }
 
-//PHẦN LOADING
+/* --- LOADING --- */
 .loadingContainer {
   display: flex;
   flex-direction: column;
@@ -101,9 +143,50 @@
 .loadingText {
   color: #666;
   font-size: 1.1rem;
-  font-weight: 500;
 }
+
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* --- RESPONSIVE --- */
+@media (max-width: 992px) {
+  .layoutWrapper {
+    flex-direction: column; /* Chuyển thành dọc trên tablet */
+  }
+
+  .sidebar {
+    width: 100%; /* Sidebar full chiều rộng */
+    margin-bottom: 30px;
+    border-bottom: 5px solid #f5f5f5;
+    padding-bottom: 20px;
+  }
+
+  .productGrid {
+    grid-template-columns: repeat(3, 1fr); /* Giữ 3 cột */
+  }
+}
+
+@media (max-width: 768px) {
+  .productGrid {
+    grid-template-columns: repeat(2, 1fr); /* 2 cột trên mobile lớn */
+  }
+  
+  .topBar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 15px;
+  }
+  
+  .sortOptions {
+    width: 100%;
+    justify-content: space-between;
+  }
+}
+
+@media (max-width: 480px) {
+  .productGrid {
+    grid-template-columns: 1fr; /* 1 cột trên mobile nhỏ */
+  }
 }
