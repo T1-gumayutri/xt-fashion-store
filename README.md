@@ -1,3 +1,22 @@
+# CREATE .env FILE IN SERVER DIRECTORY
+In the project directory, you will directory navigation to direcory backend, create a new file with name .env and copy from scripts bellow there - create evironment varible
+### `MONGO_URI=mongodb+srv://xuantri18112004_db_user:eiEkrprrEz63giaQ@cluster0.bsyrses.mongodb.net/fashionstore?retryWrites=true&w=majority&appName=Cluster0`
+###  `JWT_SECRET=a_super_secret_key_that_is_long_and_random`
+###  `GOOGLE_CLIENT_ID=1092411273263-rm0r8kjh9d3684n7pro1u1ublfht6ddg.apps.googleusercontent.com`
+### `PORT=5000`
+
+
+# CONNECT TO DATABASE WITH MONGODB
+DOWNLOAD MONGO DB COMPASS - DATABASE ENVIRONMENT - Database Management, after connect to project database by MONGO_URI, copy and paste, and connect to database, result you will receive a database with name fashionstore
+
+
+# XT-FASHION-STORE API (HOW TO RUN SERVER)
+In the project directory, you will directory navigation to direcory backend and run file server.js with node.js, may be install packages of npm:
+### `npm install`
+###  `cd backend`
+###  `node server.js`
+
+
 # Getting Started with Create React App
 
 This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
