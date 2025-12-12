@@ -1,98 +1,404 @@
+/* === CONTAINER === */
 .promoContainer {
-  max-width: 800px;
-  margin: 40px auto;
-  padding: 20px;
+  max-width: 900px;
+  margin: 60px auto;
+  padding: 40px 24px;
+  position: relative;
+  
+  /* Background decoration */
+  &::before {
+    content: '';
+    position: absolute;
+    top: -20px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 150px;
+    height: 150px;
+    background: radial-gradient(circle, rgba(201, 33, 39, 0.1) 0%, transparent 70%);
+    border-radius: 50%;
+    z-index: -1;
+  }
 
   h1 {
     text-align: center;
-    font-size: 2rem;
-    margin-bottom: 10px;
+    font-size: 2.8rem;
+    font-weight: 800;
+    margin-bottom: 12px;
+    background: linear-gradient(135deg, #c92127 0%, #ff4d4d 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: -0.5px;
+    position: relative;
+    display: inline-block;
+    width: 100%;
+    
+    &::after {
+      content: '🎉';
+      position: absolute;
+      right: 10%;
+      top: -10px;
+      font-size: 2rem;
+      animation: bounce 2s ease-in-out infinite;
+    }
+  }
+  
+  @media (max-width: 768px) {
+    margin: 40px auto;
+    padding: 30px 16px;
+    
+    h1 {
+      font-size: 2.2rem;
+      
+      &::after {
+        right: 5%;
+        font-size: 1.5rem;
+      }
+    }
   }
 }
 
-.subtitle {
-  text-align: center;
-  color: #888;
-  margin-bottom: 40px;
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(10deg);
+  }
 }
 
+/* === SUBTITLE === */
+.subtitle {
+  text-align: center;
+  color: #666;
+  font-size: 1.1rem;
+  margin-bottom: 50px;
+  font-weight: 500;
+  line-height: 1.6;
+  
+  @media (max-width: 768px) {
+    font-size: 1rem;
+    margin-bottom: 35px;
+  }
+}
+
+/* === LOADING STATE === */
+.loading {
+  text-align: center;
+  padding: 80px 20px;
+  font-size: 1.2rem;
+  color: #999;
+  
+  &::before {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 20px;
+    border: 4px solid #f0f0f0;
+    border-top-color: #c92127;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* === EMPTY STATE === */
+.empty {
+  text-align: center;
+  padding: 80px 20px;
+  color: #999;
+  font-size: 1.1rem;
+  
+  &::before {
+    content: '🎁';
+    display: block;
+    font-size: 5rem;
+    margin-bottom: 20px;
+    opacity: 0.3;
+    animation: float 3s ease-in-out infinite;
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-15px);
+  }
+}
+
+/* === PROMO LIST === */
 .promoList {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: 24px;
 }
 
+/* === PROMO CARD === */
 .promoCard {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px;
-  border: 2px dashed #ddd;
-  border-radius: 8px;
-  background-color: #fafafa;
+  padding: 28px 32px;
+  border: 3px dashed #e0e0e0;
+  border-radius: 16px;
+  background: linear-gradient(135deg, #fff 0%, #fafafa 100%);
+  position: relative;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  overflow: hidden;
+  
+  /* Decorative corner cuts */
+  &::before,
+  &::after {
+    content: '';
+    position: absolute;
+    width: 30px;
+    height: 30px;
+    background-color: #f5f5f5;
+    border-radius: 50%;
+    border: 3px dashed #e0e0e0;
+  }
+  
+  &::before {
+    top: 50%;
+    left: -15px;
+    transform: translateY(-50%);
+  }
+  
+  &::after {
+    top: 50%;
+    right: -15px;
+    transform: translateY(-50%);
+  }
+  
+  /* Background accent */
+  &::before {
+    content: '🎟️';
+    position: absolute;
+    top: 10px;
+    right: 20px;
+    font-size: 3rem;
+    opacity: 0.1;
+    transform: rotate(-15deg);
+    z-index: 0;
+  }
 
-  @media (max-width: 576px) {
+  &:hover {
+    border-color: #c92127;
+    background: linear-gradient(135deg, #fff5f6 0%, #fff 100%);
+    transform: translateY(-4px) scale(1.01);
+    box-shadow: 0 12px 28px rgba(201, 33, 39, 0.15);
+    
+    &::before,
+    &::after {
+      border-color: #c92127;
+    }
+  }
+
+  @media (max-width: 768px) {
     flex-direction: column;
     align-items: flex-start;
-    gap: 15px;
+    gap: 20px;
+    padding: 24px 20px;
   }
 }
 
+/* === PROMO INFO === */
 .promoInfo {
   flex-grow: 1;
+  z-index: 1;
 }
 
 .promoCode {
-  font-size: 1.5rem;
-  font-weight: 700;
+  font-size: 1.8rem;
+  font-weight: 800;
   color: #c92127;
-  margin-bottom: 8px;
-  letter-spacing: 1px;
+  margin-bottom: 10px;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: 'Courier New', monospace;
+  background: linear-gradient(135deg, #c92127 0%, #ff4d4d 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  display: inline-block;
+  position: relative;
+  padding: 4px 12px;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(201, 33, 39, 0.08);
+    border-radius: 6px;
+    z-index: -1;
+  }
+  
+  @media (max-width: 768px) {
+    font-size: 1.5rem;
+  }
 }
 
 .promoDescription {
-  font-size: 1rem;
-  color: #555;
-  margin-bottom: 10px;
+  font-size: 1.05rem;
+  color: #333;
+  margin-bottom: 12px;
+  line-height: 1.6;
+  font-weight: 500;
 }
 
 .promoExpiry {
-  font-size: 0.85rem;
-  color: #999;
+  font-size: 0.9rem;
+  color: #888;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
+  
+  svg {
+    color: #c92127;
+    font-size: 1rem;
+  }
 }
 
+/* === PROMO ACTION === */
 .promoAction {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 10px;
+  gap: 12px;
+  z-index: 1;
 
-  @media (max-width: 576px) {
+  @media (max-width: 768px) {
     width: 100%;
     align-items: stretch;
   }
 }
 
 .promoQuantity {
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: #333;
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #fff;
+  background: linear-gradient(135deg, #ff9800 0%, #ff5722 100%);
+  padding: 6px 14px;
+  border-radius: 20px;
+  box-shadow: 0 2px 8px rgba(255, 152, 0, 0.3);
+  white-space: nowrap;
+  
+  @media (max-width: 768px) {
+    text-align: center;
+  }
 }
 
+/* === COPY BUTTON === */
 .copyButton {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 20px;
-  background-color: #222;
+  justify-content: center;
+  gap: 10px;
+  padding: 12px 28px;
+  background: linear-gradient(135deg, #1a1a1a 0%, #333 100%);
   color: #fff;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: 500;
-  transition: background-color 0.3s ease;
+  font-weight: 700;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+  position: relative;
+  overflow: hidden;
+  
+  /* Shine effect */
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+      90deg,
+      transparent 0%,
+      rgba(255, 255, 255, 0.2) 50%,
+      transparent 100%
+    );
+    transition: left 0.5s ease;
+  }
+  
+  svg {
+    font-size: 1.1rem;
+    transition: transform 0.3s ease;
+  }
 
   &:hover {
-    background-color: #000;
+    background: linear-gradient(135deg, #c92127 0%, #a11a20 100%);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(201, 33, 39, 0.4);
+    
+    &::before {
+      left: 100%;
+    }
+    
+    svg {
+      transform: scale(1.2);
+    }
+  }
+  
+  &:active {
+    transform: translateY(0) scale(0.98);
+  }
+
+  @media (max-width: 768px) {
+    width: 100%;
+    padding: 14px;
+  }
+}
+
+/* === SUCCESS MESSAGE (after copy) === */
+.copySuccess {
+  color: #4caf50;
+  font-size: 0.9rem;
+  font-weight: 600;
+  animation: fadeInOut 2s ease;
+}
+
+@keyframes fadeInOut {
+  0%, 100% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* === RESPONSIVE ADJUSTMENTS === */
+@media (max-width: 576px) {
+  .promoCard {
+    padding: 20px 16px;
+    
+    &::before,
+    &::after {
+      width: 24px;
+      height: 24px;
+    }
+  }
+  
+  .promoCode {
+    font-size: 1.3rem;
+    letter-spacing: 1px;
+  }
+  
+  .promoDescription {
+    font-size: 0.95rem;
   }
 }

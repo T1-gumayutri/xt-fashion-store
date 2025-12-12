@@ -7,7 +7,7 @@ import { FiChevronDown, FiChevronUp } from 'react-icons/fi';
 const faqData = [
   {
     question: 'Làm thế nào để tôi đặt hàng online?',
-    answer: 'TORANO rất vui lòng hỗ trợ khách hàng đặt hàng online bằng một trong những cách đặt hàng sau:<br/>- Truy cập trang web: https://xtfashion.vn/<br/>- Liên hệ số hotline: 0987654321 để đặt sản phẩm<br/>- Chat với tư vấn viên trên fanpage của TORANO: https://www.facebook.com/xtfashion.vn'
+    answer: 'XT Fashion rất vui lòng hỗ trợ khách hàng đặt hàng online bằng một trong những cách đặt hàng sau:<br/>- Truy cập trang web: https://xtfashion.vn/<br/>- Liên hệ số hotline: 0987654321 để đặt sản phẩm<br/>- Chat với tư vấn viên trên fanpage của XT-FASHION: https://www.facebook.com/xtfashion.vn'
   },
   {
     question: 'Đặt hàng trên web tôi muốn đổi mẫu thì làm thế nào?',
@@ -15,7 +15,7 @@ const faqData = [
   },
   {
     question: 'Tôi có được xem hàng và thử không?',
-    answer: 'Dạ anh chị có thể xem hàng trước khi thanh toán! Hiện tại Torano chưa áp dụng chính sách thử hàng khi mua hàng online! Rất mong anh chị thông cảm!'
+    answer: 'Dạ anh chị có thể xem hàng trước khi thanh toán! Hiện tại XT Fashion chưa áp dụng chính sách thử hàng khi mua hàng online! Rất mong anh chị thông cảm!'
 
   },
   {

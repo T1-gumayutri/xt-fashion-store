@@ -1,36 +1,163 @@
-/* Xóa hết code cũ và thay bằng code này */
-
 .heroBannerContainer {
   width: 100%;
-  height: auto; // Chiều cao tự động theo ảnh
+  max-width: 100%;
+  margin: 0 auto;
+  overflow: hidden;
+  position: relative;
 }
 
 .mySwiper {
   width: 100%;
-  height: 500px;
-  aspect-ratio: 16 / 9;
+  height: auto;
+  
+  /* Desktop: Chiều cao cố định */
+  @media (min-width: 769px) {
+    height: 500px;
+  }
+  
+  /* Tablet: Chiều cao vừa phải */
+  @media (max-width: 768px) {
+    height: 400px;
+  }
+  
+  /* Mobile: Chiều cao nhỏ hơn */
+  @media (max-width: 480px) {
+    height: 280px;
+  }
 
   img {
     display: block;
     width: 100%;
     height: 100%;
-    object-fit: cover; // Đảm bảo ảnh luôn vừa vặn
+    object-fit: cover;
+    object-position: center;
   }
 }
 
-/* Tùy chỉnh màu sắc cho các nút của Swiper */
+/* --- CUSTOM NAVIGATION BUTTONS --- */
 :global(.swiper-button-next),
 :global(.swiper-button-prev) {
-  color: #ffffff !important; // Màu trắng cho mũi tên
-  background-color: rgba(0, 0, 0, 0.3);
-  width: 40px !important;
-  height: 40px !important;
+  color: #fff !important;
+  background: linear-gradient(135deg, rgba(201, 33, 39, 0.9) 0%, rgba(161, 26, 32, 0.9) 100%);
+  width: 50px !important;
+  height: 50px !important;
   border-radius: 50%;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  
   &::after {
-    font-size: 1.2rem !important;
+    font-size: 1.3rem !important;
+    font-weight: 700;
+  }
+  
+  &:hover {
+    background: linear-gradient(135deg, rgba(201, 33, 39, 1) 0%, rgba(161, 26, 32, 1) 100%);
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(201, 33, 39, 0.5);
+  }
+  
+  &:active {
+    transform: scale(1.05);
+  }
+  
+  @media (max-width: 768px) {
+    width: 40px !important;
+    height: 40px !important;
+    
+    &::after {
+      font-size: 1.1rem !important;
+    }
+  }
+  
+  @media (max-width: 480px) {
+    width: 35px !important;
+    height: 35px !important;
+    
+    &::after {
+      font-size: 1rem !important;
+    }
+  }
+}
+
+/* --- CUSTOM PAGINATION BULLETS --- */
+:global(.swiper-pagination) {
+  bottom: 20px !important;
+  
+  @media (max-width: 480px) {
+    bottom: 15px !important;
+  }
+}
+
+:global(.swiper-pagination-bullet) {
+  width: 12px !important;
+  height: 12px !important;
+  background-color: rgba(255, 255, 255, 0.5) !important;
+  opacity: 1 !important;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  
+  @media (max-width: 480px) {
+    width: 10px !important;
+    height: 10px !important;
   }
 }
 
 :global(.swiper-pagination-bullet-active) {
-  background-color: #ffffff !important; // Màu trắng cho chấm tròn đang hoạt động
+  background-color: #c92127 !important;
+  border-color: #fff;
+  transform: scale(1.3);
+  box-shadow: 0 2px 8px rgba(201, 33, 39, 0.5);
+}
+
+/* --- ADD OVERLAY GRADIENT FOR BETTER TEXT READABILITY --- */
+.mySwiper {
+  &::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(0, 0, 0, 0) 0%,
+      rgba(0, 0, 0, 0.1) 50%,
+      rgba(0, 0, 0, 0.3) 100%
+    );
+    z-index: 1;
+    pointer-events: none;
+  }
+}
+
+/* Ensure navigation and pagination are above overlay */
+:global(.swiper-button-next),
+:global(.swiper-button-prev),
+:global(.swiper-pagination) {
+  z-index: 2 !important;
+}
+
+/* --- SMOOTH SLIDE TRANSITION --- */
+:global(.swiper-slide) {
+  transition: opacity 0.5s ease;
+}
+
+/* --- LOADING STATE (Optional) --- */
+.mySwiper img {
+  background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+  background-size: 200% 100%;
+  animation: loading 1.5s ease-in-out infinite;
+}
+
+@keyframes loading {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+.mySwiper img[src] {
+  animation: none;
+  background: none;
 }

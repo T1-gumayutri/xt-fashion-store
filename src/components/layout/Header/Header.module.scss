@@ -1,124 +1,86 @@
-/* ... .header, .topBar ... */
+/* === HEADER CONTAINER === */
 .header {
-  border-bottom: 1px solid #e0e0e0;
-  position: relative;
+  border-bottom: 2px solid #e8e8e8;
+  position: sticky;
+  top: 0;
   z-index: 1000;
+  background-color: #fff;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+  transition: box-shadow 0.3s ease;
+  
+  &:hover {
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  }
 }
 
+
+/* === TOP BAR === */
 .topBar {
   display: flex;
-  justify-content: flex-end;
+  justify-content: space-between;
   align-items: center;
-  gap: 15px;
-  background-color: #f5f5f5;
-  padding: 8px 50px;
-  font-size: 0.9rem;
-  color: #666;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  padding: 10px 50px;
+  font-size: 0.85rem;
+  color: #555;
+  border-bottom: 1px solid #e0e0e0;
+  
+  @media (max-width: 768px) {
+    padding: 8px 20px;
+    font-size: 0.8rem;
+  }
 }
+
+
+.userActions, .customerActions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  
+  @media (max-width: 768px) {
+    gap: 12px;
+  }
+}
+
 
 .topLink {
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   text-decoration: none;
   color: #333;
+  font-weight: 500;
+  transition: all 0.3s ease;
+  padding: 5px 10px;
+  border-radius: 6px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: inherit;
+  
+  svg {
+    font-size: 1rem;
+    transition: transform 0.3s ease;
+  }
 
   &:hover {
-    color: #007bff;
-  }
-}
-
-
-/* --- CẬP NHẬT Ở ĐÂY --- */
-.mainHeader {
-  display: flex;
-  /* Bỏ justify-content: space-between để có thể căn giữa nav */
-  align-items: center;
-  padding: 15px 50px;
-  background-color: #fff;
-}
-
-.logo img {
-  height: 60px;
- 
-}
-
-.navigation {
-  /* Cho phép thanh nav chiếm hết không gian trống ở giữa */
-  flex-grow: 1;
-  display: flex;
-  /* Căn giữa danh sách ul bên trong nó */
-  justify-content: center;
-}
-
-.navigation ul {
-  list-style: none;
-  display: flex;
-  gap: 40px; /* Tăng khoảng cách giữa các mục cho đẹp hơn */
-  margin: 0;
-  padding: 0;
-}
-
-.navigation a {
-  text-decoration: none;
-  color: #333;
-  /* IN ĐẬM: Tăng font-weight để chữ đậm và rõ nét hơn */
-  font-weight: 700;
-  font-size: 1rem;
-  text-transform: uppercase;
-  padding: 20px 0;
-  display: block;
-}
-
-/* --- CSS CHO DROPDOWN (Giữ nguyên) --- */
-.navItem {
-  position: relative;
-
-  &:hover .dropdown {
-    display: block;
-  }
-}
-
-.dropdown {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: -15px;
-  background-color: #fff;
-  min-width: 220px;
-  box-shadow: 0 8px 16px rgba(0,0,0,0.1);
-  border-top: 2px solid #333;
-  padding: 10px;
-  animation: fadeIn 0.3s ease-in-out;
-}
-
-.dropdownContent {
-  a {
-    font-size: 0.9rem;
-    padding: 10px 15px;
-    text-transform: none;
-    font-weight: 400;
-
-    &:hover {
-      background-color: #f5f5f5;
+    color: #c92127;
+    background-color: rgba(201, 33, 39, 0.08);
+    
+    svg {
+      transform: scale(1.15);
     }
   }
 }
 
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(10px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-// Thêm vào cuối file Header.module.scss
+
 .welcomeMessage {
-  font-weight: 500;
+  font-weight: 600;
+  color: #c92127;
+  letter-spacing: 0.3px;
 }
+
 
 .logoutButton {
   background: none;
@@ -127,64 +89,366 @@
   font-family: inherit;
   font-size: inherit;
   color: #333;
-  padding: 0;
+  font-weight: 500;
+  padding: 5px 10px;
+  border-radius: 6px;
+  transition: all 0.3s ease;
 
   &:hover {
-    color: #007bff;
+    color: #c92127;
+    background-color: rgba(201, 33, 39, 0.08);
   }
 }
-.topLink { background: none; border: none; cursor: pointer; font-family: inherit; }
-.topBar {
+
+
+/* === MAIN HEADER === */
+.mainHeader {
   display: flex;
-  justify-content: space-between; // Tách 2 nhóm ra 2 bên
   align-items: center;
-  // ... các style cũ
+  padding: 18px 50px;
+  background-color: #fff;
+  gap: 30px;
+  
+  @media (max-width: 1200px) {
+    padding: 15px 30px;
+    gap: 20px;
+  }
+  
+  @media (max-width: 768px) {
+    padding: 12px 20px;
+    flex-wrap: wrap;
+  }
 }
 
-.userActions, .customerActions {
+
+/* === LOGO === */
+.logo {
+  flex-shrink: 0;
+  
+  img {
+    height: 65px;
+    transition: transform 0.3s ease, filter 0.3s ease;
+    
+    &:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 4px 8px rgba(201, 33, 39, 0.2));
+    }
+    
+    @media (max-width: 768px) {
+      height: 50px;
+    }
+  }
+}
+
+
+/* === NAVIGATION === */
+.navigation {
+  flex-grow: 1;
   display: flex;
-  align-items: center;
-  gap: 15px;
+  justify-content: center;
+  
+  @media (max-width: 768px) {
+    order: 3;
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+  }
+  
+  ul {
+    list-style: none;
+    display: flex;
+    gap: 35px;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    
+    @media (max-width: 1200px) {
+      gap: 25px;
+    }
+    
+    @media (max-width: 768px) {
+      gap: 15px;
+      white-space: nowrap;
+    }
+  }
+  
+  a {
+    text-decoration: none;
+    color: #1a1a1a;
+    font-weight: 700;
+    font-size: 0.95rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    padding: 22px 0;
+    display: block;
+    position: relative;
+    transition: color 0.3s ease;
+    
+    /* Underline effect */
+    &::after {
+      content: '';
+      position: absolute;
+      bottom: 15px;
+      left: 0;
+      width: 0;
+      height: 3px;
+      background: linear-gradient(90deg, #c92127, #ff4d4d);
+      transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+      border-radius: 2px;
+    }
+    
+    &:hover {
+      color: #c92127;
+      
+      &::after {
+        width: 100%;
+      }
+    }
+    
+    @media (max-width: 768px) {
+      font-size: 0.85rem;
+      padding: 15px 0;
+      
+      &::after {
+        bottom: 10px;
+      }
+    }
+  }
 }
+
+
+/* === DROPDOWN MENU === */
+.navItem {
+  position: relative;
+
+  &:hover .dropdown {
+    display: block;
+    animation: slideDown 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+}
+
+
+.dropdown {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #fff;
+  min-width: 240px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border-top: 3px solid #c92127;
+  border-radius: 0 0 8px 8px;
+  padding: 12px 0;
+  z-index: 1001;
+  
+  &::before {
+    content: '';
+    position: absolute;
+    top: -8px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 0;
+    height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-bottom: 8px solid #c92127;
+  }
+}
+
+
+.dropdownContent {
+  a {
+    display: block;
+    font-size: 0.9rem;
+    padding: 12px 24px;
+    text-transform: none;
+    font-weight: 500;
+    color: #333;
+    transition: all 0.3s ease;
+    position: relative;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      left: 0;
+      top: 0;
+      bottom: 0;
+      width: 0;
+      background: linear-gradient(90deg, #c92127, transparent);
+      transition: width 0.3s ease;
+    }
+    
+    &::after {
+      display: none;
+    }
+
+    &:hover {
+      background-color: #f8f8f8;
+      color: #c92127;
+      padding-left: 32px;
+      
+      &::before {
+        width: 4px;
+      }
+    }
+  }
+}
+
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+
+/* === SEARCH AREA === */
 .searchArea {
-  margin-left: 40px; /* Tạo khoảng cách với menu */
+  margin-left: auto;
+  flex-shrink: 0;
+  
+  @media (max-width: 768px) {
+    margin-left: 0;
+  }
 }
+
 
 .searchForm {
   display: flex;
   align-items: center;
-  border: 1px solid #ddd;
-  border-radius: 20px;
+  border: 2px solid #e0e0e0;
+  border-radius: 25px;
   overflow: hidden;
-  background-color: #f5f5f5;
+  background-color: #f8f9fa;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.05);
+  
+  &:focus-within {
+    border-color: #c92127;
+    background-color: #fff;
+    box-shadow: 0 4px 12px rgba(201, 33, 39, 0.15);
+  }
 }
+
 
 .searchInput {
   border: none;
   outline: none;
-  padding: 8px 15px;
+  padding: 10px 18px;
   font-size: 0.9rem;
   background-color: transparent;
-  width: 200px;
-  transition: width 0.3s ease;
+  width: 220px;
+  transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  color: #333;
+  
+  &::placeholder {
+    color: #999;
+  }
 
   &:focus {
-    width: 250px; /* Mở rộng ô input khi focus */
+    width: 280px;
+  }
+  
+  @media (max-width: 768px) {
+    width: 160px;
+    
+    &:focus {
+      width: 200px;
+    }
   }
 }
 
+
 .searchButton {
-  background: none;
+  background: linear-gradient(135deg, #c92127 0%, #a11a20 100%);
   border: none;
-  padding: 0 12px;
+  padding: 10px 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.1rem;
-  color: #555;
-
+  font-size: 1rem;
+  color: #fff;
+  transition: all 0.3s ease;
+  
   &:hover {
-    color: #000;
+    background: linear-gradient(135deg, #a11a20 0%, #8a1519 100%);
+    transform: scale(1.05);
+  }
+  
+  &:active {
+    transform: scale(0.98);
+  }
+}
+
+
+/* === ICONS (Cart, Wishlist) === */
+.iconLink {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background-color: #f8f9fa;
+  color: #333;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  border: 2px solid transparent;
+  
+  &:hover {
+    background-color: #c92127;
+    color: #fff;
+    border-color: #c92127;
+    transform: translateY(-3px);
+    box-shadow: 0 6px 16px rgba(201, 33, 39, 0.3);
+  }
+  
+  .badge {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    background: linear-gradient(135deg, #ff4d4d 0%, #c92127 100%);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 3px 6px;
+    border-radius: 10px;
+    min-width: 18px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  }
+}
+
+
+/* === RESPONSIVE TWEAKS === */
+@media (max-width: 992px) {
+  .navigation ul {
+    gap: 20px;
+  }
+  
+  .navigation a {
+    font-size: 0.9rem;
+  }
+}
+
+
+@media (max-width: 768px) {
+  .topBar {
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+  }
+  
+  .userActions, .customerActions {
+    flex-wrap: wrap;
+    justify-content: center;
   }
 }
